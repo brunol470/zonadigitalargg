@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zona Digitalarg | Juegos Digitales PS4 y PS5 - Cuentas Originales y Garantía</title>
+    <meta name="description" content="Catálogo online de Zona Digitalarg. Encontrá los mejores juegos digitales para PlayStation 4 y PlayStation 5. Cuentas primarias y secundarias con entrega inmediata y garantía.">
+    
+    <!-- Google Fonts: Outfit y Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 (Iconos oficiales) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Hoja de Estilos -->
+    <link rel="stylesheet" href="style.css?v=2.3">
+</head>
+<body>
+
+    <!-- Canvas para partículas animadas del fondo -->
+    <canvas id="particlesCanvas"></canvas>
+
+    <!-- ====================================================================
+         1. ENCABEZADO Y BARRA DE NAVEGACIÓN
+         ==================================================================== -->
+    <header class="site-header" id="header">
+        <div class="container nav-container">
+            <!-- Logo ZONA DIGITALARG (Esquina superior izquierda) -->
+            <a href="#inicio" class="logo logo-custom" id="mainLogo">
+                <div class="logo-zd-badge" id="logoIconContainer">
+                    <div class="logo-zd-brush"></div>
+                    <span class="logo-zd-text"><span class="logo-zd-z">Z</span><span class="logo-zd-d">D</span></span>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-title">ZONA <span>DIGITALARG</span></div>
+                    <span class="logo-badge">PS4 &amp; PS5 Store</span>
+                </div>
+            </a>
+
+            <!-- Menú de Navegación Principal -->
+            <nav>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="#inicio" class="nav-link active">Inicio</a></li>
+                    <li><a href="#novedades" class="nav-link">Novedades</a></li>
+                    <li class="nav-dropdown-item" id="catalogoDropdownItem">
+                        <a href="#catalogo" class="nav-link nav-link-dropdown" id="catalogoMenuLink">
+                            <span>Catálogo</span>
+                            <i class="fa-solid fa-chevron-down nav-dropdown-icon"></i>
+                        </a>
+                        <ul class="nav-dropdown-menu" id="catalogoDropdown">
+                            <li><a href="#catalogo" class="dropdown-link" data-filter-plat="PS4"><i class="fa-brands fa-playstation"></i> <span>Juegos de PS4</span></a></li>
+                            <li><a href="#catalogo" class="dropdown-link" data-filter-plat="PS5"><i class="fa-brands fa-playstation"></i> <span>Juegos de PS5</span></a></li>
+                            <li><a href="#ps3-games" class="dropdown-link" data-target="ps3"><i class="fa-solid fa-gamepad"></i> <span>Juegos de PS3</span></a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#ps-plus" class="nav-link nav-link-psplus" id="navPsPlusLink"><i class="fa-brands fa-playstation"></i> <span>PS Plus</span> <span class="nav-psplus-tag">PLUS</span></a></li>
+                    <li><a href="#ofertas" class="nav-link">Ofertas</a></li>
+                    <li><a href="#cuentas-info" class="nav-link">Tipos de Cuenta</a></li>
+                    <li><a href="#referencias" class="nav-link">Referencias</a></li>
+                    <li><a href="#contacto" class="nav-link">Contacto</a></li>
+                    <li><a href="https://www.instagram.com/zona_digitalarg/" target="_blank" rel="noopener noreferrer" class="nav-link nav-link-ig" id="navIgLink"><i class="fa-brands fa-instagram"></i> <span>Seguinos en Instagram</span></a></li>
+                </ul>
+            </nav>
+
+            <!-- Acciones Derecha: Menú 3 Puntos y WhatsApp -->
+            <div class="nav-actions">
+                <!-- Menú de Tres Puntos (Opciones Secundarias) -->
+                <div class="dots-menu-container">
+                    <button class="btn-dots" id="dotsMenuBtn" aria-label="Menú de opciones secundarias" title="Más opciones">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <!-- Menú Desplegable -->
+                    <div class="dots-dropdown" id="dotsDropdown">
+                        <button class="dots-item" onclick="openInfoModal('comoComprar')">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <span>¿Cómo comprar?</span>
+                        </button>
+                        <button class="dots-item" onclick="openInfoModal('tiposCuenta')">
+                            <i class="fa-solid fa-users-gear"></i>
+                            <span>Primaria vs Secundaria</span>
+                        </button>
+                        <button class="dots-item" onclick="openInfoModal('garantia')">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>Garantía y Seguridad</span>
+                        </button>
+                        <div class="dots-divider"></div>
+                        <button class="dots-item" onclick="openInfoModal('faq')">
+                            <i class="fa-solid fa-circle-question"></i>
+                            <span>Preguntas Frecuentes</span>
+                        </button>
+                        <div class="dots-divider"></div>
+                        <a href="https://www.instagram.com/zona_digitalarg/" target="_blank" rel="noopener noreferrer" class="dots-item" id="dotsIgLink" style="text-decoration: none;">
+                            <i class="fa-brands fa-instagram" style="color: #E1306C;"></i>
+                            <span>Seguinos en Instagram</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Botón Contacto WhatsApp en Nav -->
+                <a href="https://wa.me/5491124660453?text=Hola%2C%20quiero%20hacer%20una%20consulta%20sobre%20los%20juegos%20digitales%20%F0%9F%8E%AE" target="_blank" rel="noopener noreferrer" class="btn-nav-wa" id="navWaBtn" title="Contactar por WhatsApp">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <span>WhatsApp</span>
+                </a>
+
+                <!-- Botón Menú Mobile Hamburguesa -->
+                <button class="mobile-toggle" id="mobileToggle" aria-label="Abrir menú de navegación">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+
+    <!-- ====================================================================
+         2. SECCIÓN HERO (PORTADA PRINCIPAL)
+         ==================================================================== -->
+    <section class="hero" id="inicio">
+        <div class="hero-glow"></div>
+        <div class="container hero-content">
+            <div class="hero-pill">
+                <i class="fa-solid fa-bolt"></i>
+                <span>ENTREGA DIGITAL INMEDIATA • CUENTAS 100% ORIGINALES</span>
+            </div>
+
+            <h1 class="hero-title">
+                Tus juegos favoritos para <span class="text-highlight">PS4 y PS5</span> al mejor precio
+            </h1>
+
+            <p class="hero-description">
+                En <strong>Zona Digitalarg</strong> encontrás el catálogo más completo de juegos digitales PlayStation en cuentas primarias y secundarias. Comprá fácil, rápido y con garantía asegurada.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="#catalogo" class="btn-primary">
+                    <i class="fa-solid fa-gamepad"></i>
+                    <span>Explorar Catálogo</span>
+                </a>
+                <a href="https://wa.me/5491124660453?text=Hola%2C%20quiero%20hacer%20una%20consulta%20sobre%20los%20juegos%20digitales%20%F0%9F%8E%AE" target="_blank" rel="noopener noreferrer" class="btn-secondary" id="heroWaBtn">
+                    <i class="fa-brands fa-whatsapp"></i>
+                    <span>Escribir por WhatsApp</span>
+                </a>
+            </div>
+
+            <!-- Badges de Confianza -->
+            <div class="hero-features">
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-bolt-lightning"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>Entrega Rápida</h4>
+                        <p>Te enviamos los datos y la guía por WhatsApp en minutos.</p>
+                    </div>
+                </div>
+
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-shield-check"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>Garantía Permanente</h4>
+                        <p>Cuentas oficiales verificadas y soporte post-venta.</p>
+                    </div>
+                </div>
+
+                <div class="feature-box">
+                    <div class="feature-icon">
+                        <i class="fa-solid fa-tags"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>Precios Accesibles</h4>
+                        <p>Ahorrá hasta un 60% comparado con la tienda oficial.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================================
+         2.5 SECCIÓN DE NOVEDADES (CARRUSEL)
+         ==================================================================== -->
+    <section class="novedades-section" id="novedades">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <span class="section-tag"><i class="fa-solid fa-star"></i> Lo Más Nuevo</span>
+                    <h2 class="section-title">Novedades</h2>
+                    <p class="section-subtitle">Los juegos más esperados y los últimos lanzamientos que no te podés perder.</p>
+                </div>
+            </div>
+
+            <!-- Carrusel de Novedades -->
+            <div class="novedades-carousel" id="novedadesCarousel">
+                <div class="novedades-track" id="novedadesTrack">
+                    <!-- Se carga dinámicamente desde app.js -->
+                </div>
+
+                <!-- Controles del carrusel -->
+                <button class="carousel-btn carousel-btn-prev" id="novedadesPrev" aria-label="Anterior">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button class="carousel-btn carousel-btn-next" id="novedadesNext" aria-label="Siguiente">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+                <!-- Indicadores -->
+                <div class="carousel-indicators" id="novedadesIndicators">
+                    <!-- Se genera dinámicamente -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================================
+         3. SECCIÓN DE OFERTAS DESTACADAS
+         ==================================================================== -->
+    <section class="offers-section" id="ofertas">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <span class="section-tag"><i class="fa-solid fa-fire"></i> Promociones Especiales</span>
+                    <h2 class="section-title">Ofertas PS4 PS5</h2>
+                    <p class="section-subtitle">Aprovechá estos juegos seleccionados con precios rebajados por tiempo limitado.</p>
+                </div>
+                <a href="#catalogo" class="btn-secondary" onclick="filterByOffer()">
+                    <span>Ver todas las ofertas</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <!-- Showcase de Ofertas con imágenes grandes -->
+            <div class="offers-showcase" id="offersShowcase">
+                <div class="offers-showcase-track" id="offersShowcaseTrack">
+                    <!-- Se carga dinámicamente desde app.js -->
+                </div>
+                <button class="carousel-btn carousel-btn-prev" id="offersPrev" aria-label="Anterior">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button class="carousel-btn carousel-btn-next" id="offersNext" aria-label="Siguiente">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <div class="carousel-indicators" id="offersIndicators">
+                    <!-- Se genera dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Grilla donde se muestran los juegos en oferta -->
+            <div class="offers-grid" id="offersGrid">
+                <!-- Se cargará automáticamente desde app.js -->
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================================
+         4. SECCIÓN CATÁLOGO INTERACTIVO COMPLETO
+         ==================================================================== -->
+    <section class="catalog-section" id="catalogo">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <span class="section-tag"><i class="fa-solid fa-list-check"></i> Catálogo Completo</span>
+                    <h2 class="section-title">Encontrá Tu Próximo Juego</h2>
+                    <p class="section-subtitle">Filtrá por consola o escribí el nombre del título que estás buscando.</p>
+                </div>
+            </div>
+
+            <!-- Barra de Herramientas: Buscador y Filtros -->
+            <div class="catalog-toolbar">
+                <!-- Buscador en tiempo real -->
+                <div class="search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre (ej: Call of Duty, FIFA, Spider-Man, GTA...)" autocomplete="off">
+                    <button class="clear-search-btn" id="clearSearchBtn" title="Limpiar búsqueda">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Filtros por Plataforma y Categoría -->
+                <div class="filter-row">
+                    <div class="platform-filters">
+                        <button class="filter-btn active" data-platform="all">
+                            <i class="fa-solid fa-border-all"></i> Todos
+                        </button>
+                        <button class="filter-btn" data-platform="PS5">
+                            <i class="fa-brands fa-playstation"></i> Solo PS5
+                        </button>
+                        <button class="filter-btn" data-platform="PS4">
+                            <i class="fa-brands fa-playstation"></i> Solo PS4
+                        </button>
+                        <button class="filter-btn" data-category="ofertas">
+                            <i class="fa-solid fa-tag"></i> En Oferta
+                        </button>
+                    </div>
+
+                    <!-- Ordenar por Precio -->
+                    <div class="sort-wrapper">
+                        <label for="sortSelect" class="sort-label">Ordenar:</label>
+                        <select id="sortSelect" class="sort-select">
+                            <option value="featured">Destacados</option>
+                            <option value="price-asc">Precio: Menor a Mayor</option>
+                            <option value="price-desc">Precio: Mayor a Menor</option>
+                            <option value="name-asc">Nombre: A - Z</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grilla Principal del Catálogo de Juegos -->
+            <div class="games-grid" id="gamesGrid">
+                <!-- Se cargará automáticamente con JavaScript -->
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================================
+         4.5 SECCIÓN JUEGOS DE PS3
+         ==================================================================== -->
+    <section class="ps3-section" id="ps3-games">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <span class="section-tag"><i class="fa-solid fa-gamepad"></i> PlayStation 3</span>
+                    <h2 class="section-title">Juegos de PS3</h2>
+                    <p class="section-subtitle">Revivís los clásicos de PS3 con los mejores precios. Entrega inmediata por WhatsApp.</p>
+                </div>
+            </div>
+
+            <!-- Grilla de juegos PS3 -->
+            <div class="ps3-grid" id="ps3Grid">
+                <!-- Se carga dinámicamente desde app.js -->
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================================
+         4.8 SECCIÓN MEMBRESÍAS PLAYSTATION PLUS (PS4 Y PS5)
+         ==================================================================== -->
+    <section class="psplus-section" id="ps-plus">
+        <div class="psplus-ambient-glow"></div>
+        <div class="container">
+            <div class="section-header psplus-section-header">
+                <div>
+                    <span class="section-tag psplus-section-tag"><i class="fa-brands fa-playstation"></i> Suscripciones Oficiales</span>
+                    <h2 class="section-title">Membresías PlayStation Plus</h2>
+                    <p class="section-subtitle">Multijugador online, catálogo de cientos de juegos, clásicos legendarios y beneficios exclusivos para PS4 y PS5.</p>
+                </div>
+            </div>
+
+            <!-- Selector Interactivo: Consola y Período -->
+            <div class="psplus-filter-card">
+                <!-- Selector de Consola -->
+                <div class="psplus-control-block">
+                    <span class="psplus-control-title"><i class="fa-brands fa-playstation"></i> Consola:</span>
+                    <div class="psplus-console-selector" id="psplusConsoleSelector">
+                        <button type="button" class="psplus-console-btn active" data-console="PS5" onclick="setPsPlusConsole('PS5')">
+                            <i class="fa-brands fa-playstation"></i> PlayStation 5
+                        </button>
+                        <button type="button" class="psplus-console-btn" data-console="PS4" onclick="setPsPlusConsole('PS4')">
+                            <i class="fa-brands fa-playstation"></i> PlayStation 4
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Selector de Duración -->
+                <div class="psplus-control-block">
+                    <span class="psplus-control-title"><i class="fa-regular fa-clock"></i> Período de suscripción:</span>
+                    <div class="psplus-duration-selector" id="psplusDurationSelector">
+                        <button type="button" class="psplus-time-btn" data-duration="1" onclick="setPsPlusDuration(1)">
+                            <span>1 Mes</span>
+                        </button>
+                        <button type="button" class="psplus-time-btn" data-duration="3" onclick="setPsPlusDuration(3)">
+                            <span>3 Meses</span>
+                        </button>
+                        <button type="button" class="psplus-time-btn" data-duration="6" onclick="setPsPlusDuration(6)">
+                            <span>6 Meses</span>
+                        </button>
+                        <button type="button" class="psplus-time-btn active" data-duration="12" onclick="setPsPlusDuration(12)">
+                            <span>12 Meses</span>
+                            <span class="psplus-save-badge">Más Ahorro</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grilla de Planes: Essential, Extra, Deluxe -->
+            <div class="psplus-plans-grid" id="psplusPlansGrid">
+                <!-- Generado dinámicamente desde app.js -->
+            </div>
+
+            <!-- Banner Informativo de Garantía y Activación -->
+            <div class="psplus-guarantee-banner">
+                <div class="psplus-guarantee-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="psplus-guarantee-content">
+                    <h4>Cuentas 100% Originales y Garantía Total</h4>
+                    <p>Todas las suscripciones de PlayStation Plus se entregan con guía paso a paso para activarlas en tu consola en minutos. Soporte post-venta permanente y garantía asegurada durante todo el período contratado.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================================
+         5. SECCIÓN EXPLICACIÓN: CUENTA PRIMARIA VS SECUNDARIA
+         ==================================================================== -->
+    <section class="accounts-info-section" id="cuentas-info">
+        <div class="container">
+            <div class="section-header" style="text-align: center; max-width: 720px; margin: 0 auto 30px;">
+                <span class="section-tag"><i class="fa-solid fa-circle-info"></i> Información Importante</span>
+                <h2 class="section-title">¿Cómo Funcionan las Cuentas Digitales?</h2>
+                <p class="section-subtitle">Elegí la opción que mejor se adapte a tu comodidad y presupuesto. Ambas son 100% legales y seguras.</p>
+            </div>
+
+            <div class="accounts-grid">
+                <!-- Tarjeta Cuenta Primaria -->
+                <div class="account-card primary-card">
+                    <span class="account-badge-top">Más Recomendada</span>
+                    <div class="account-header">
+                        <div class="account-icon">
+                            <i class="fa-solid fa-crown"></i>
+                        </div>
+                        <div>
+                            <h3>Cuenta Primaria</h3>
+                            <p>Jugás siempre desde tu propio perfil personal</p>
+                        </div>
+                    </div>
+
+                    <ul class="account-list">
+                        <li>
+                            <i class="fa-solid fa-check-circle"></i>
+                            <span><strong>Jugás desde tu cuenta de siempre:</strong> No perdés tus amigos ni tu historial.</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check-circle"></i>
+                            <span><strong>Trofeos en tu perfil:</strong> Todos los logros quedan guardados en tu usuario personal.</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check-circle"></i>
+                            <span><strong>Podés jugar sin internet:</strong> Una vez descargado, funciona tanto online como offline.</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check-circle"></i>
+                            <span><strong>Multijugador online:</strong> Podés jugar online con tu suscripción a PS Plus.</span>
+                        </li>
+                    </ul>
+
+                    <a href="#catalogo" class="btn-primary" style="width: 100%;">
+                        <span>Ver Juegos en Primaria</span>
+                    </a>
+                </div>
+
+                <!-- Tarjeta Cuenta Secundaria -->
+                <div class="account-card">
+                    <div class="account-header">
+                        <div class="account-icon" style="background: rgba(0, 112, 209, 0.15); color: var(--color-ps5);">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div>
+                            <h3>Cuenta Secundaria</h3>
+                            <p>La opción más económica para jugar</p>
+                        </div>
+                    </div>
+
+                    <ul class="account-list">
+                        <li>
+                            <i class="fa-solid fa-check-circle"></i>
+                            <span><strong>El precio más bajo:</strong> Disfrutá los mejores estrenos pagando mucho menos.</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-check-circle"></i>
+                            <span><strong>Mismo juego completo:</strong> Disfrutás de la historia, modos y gráficos exactos al 100%.</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-info-circle"></i>
+                            <span><strong>Jugás desde el usuario enviado:</strong> Iniciás sesión en el usuario que te proveemos para jugar.</span>
+                        </li>
+                        <li>
+                            <i class="fa-solid fa-info-circle"></i>
+                            <span><strong>Requiere conexión a internet:</strong> Tu consola debe estar conectada para verificar la licencia al iniciar.</span>
+                        </li>
+                    </ul>
+
+                    <a href="#catalogo" class="btn-secondary" style="width: 100%;">
+                        <span>Ver Juegos en Secundaria</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================================
+         6. SECCIÓN REFERENCIAS / TESTIMONIOS Y CONFIANZA
+         ==================================================================== -->
+    <section class="references-section" id="referencias">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <span class="section-tag"><i class="fa-solid fa-star"></i> Opiniones Reales</span>
+                    <h2 class="section-title">Lo Que Dicen Nuestros Clientes</h2>
+                    <p class="section-subtitle">Más de 1.500 jugadores ya confían en Zona Digitalarg para comprar sus juegos.</p>
+                </div>
+            </div>
+
+            <!-- Grilla de Opiniones -->
+            <div class="reviews-grid">
+                <div class="review-card">
+                    <div class="review-top">
+                        <div class="review-user">
+                            <div class="user-avatar">M</div>
+                            <div class="user-info">
+                                <h4>Matías R.</h4>
+                                <span>Buenos Aires • Hace 2 días</span>
+                            </div>
+                        </div>
+                        <div class="review-stars">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="review-text">
+                        "Compré el Modern Warfare 3 para PS5. La atención por WhatsApp fue de 10, me pasaron los datos en menos de 10 minutos y el instructivo es súper claro. 100% confiables."
+                    </p>
+                    <div class="review-game-bought">
+                        <i class="fa-brands fa-playstation"></i> Compró: Call of Duty MW3 (PS5)
+                    </div>
+                </div>
+
+                <div class="review-card">
+                    <div class="review-top">
+                        <div class="review-user">
+                            <div class="user-avatar">L</div>
+                            <div class="user-info">
+                                <h4>Lucas G.</h4>
+                                <span>Córdoba • Hace 5 días</span>
+                            </div>
+                        </div>
+                        <div class="review-stars">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="review-text">
+                        "Es la tercera vez que compro en Zona Digitalarg. Ya compré FC 25 y Spider-Man 2 en cuenta primaria, ningún problema y siempre responden al toque si tenés una duda."
+                    </p>
+                    <div class="review-game-bought">
+                        <i class="fa-brands fa-playstation"></i> Compró: EA SPORTS FC 25 (PS4)
+                    </div>
+                </div>
+
+                <div class="review-card">
+                    <div class="review-top">
+                        <div class="review-user">
+                            <div class="user-avatar">F</div>
+                            <div class="user-info">
+                                <h4>Facundo M.</h4>
+                                <span>Rosario • Hace 1 semana</span>
+                            </div>
+                        </div>
+                        <div class="review-stars">
+                            <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+                        </div>
+                    </div>
+                    <p class="review-text">
+                        "Tenía miedo porque nunca había comprado juegos en formato digital, pero me guiaron paso a paso con audios y fotos. Súper recomendado para los que juegan en PS4 y PS5."
+                    </p>
+                    <div class="review-game-bought">
+                        <i class="fa-brands fa-playstation"></i> Compró: GTA V Premium Edition
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra de Medios de Pago Aceptados -->
+            <div class="payment-trust-bar">
+                <div class="payment-item">
+                    <i class="fa-solid fa-money-bill-transfer"></i>
+                    <span>Transferencia Bancaria</span>
+                </div>
+                <div class="payment-item">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>Mercado Pago</span>
+                </div>
+                <div class="payment-item">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span>Pago con QR / Débito</span>
+                </div>
+                <div class="payment-item">
+                    <i class="fa-solid fa-headset"></i>
+                    <span>Soporte Guiado Post-Venta</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================================
+         7. SECCIÓN PREGUNTAS FRECUENTES (FAQ)
+         ==================================================================== -->
+    <section class="faq-section" id="faq">
+        <div class="container">
+            <div class="section-header" style="text-align: center; max-width: 680px; margin: 0 auto 36px;">
+                <span class="section-tag"><i class="fa-solid fa-circle-question"></i> Respuestas Rápidas</span>
+                <h2 class="section-title">Preguntas Frecuentes</h2>
+                <p class="section-subtitle">Resolvemos tus dudas antes de realizar tu compra.</p>
+            </div>
+
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Cómo es el proceso de entrega del juego?</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        Una vez confirmado el pago, te enviamos inmediatamente por WhatsApp los datos de la cuenta oficial (usuario y contraseña) junto con un instructivo detallado paso a paso para activarla y poner el juego a descargar en tu PlayStation en menos de 5 minutos.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Tienen garantía los juegos?</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        ¡Sí! Todas nuestras cuentas cuentan con garantía de por vida en la activación. Si alguna vez cambiás de disco, formateás o tenés cualquier inconveniente técnico, nuestro equipo de soporte te asiste para que sigas jugando sin problemas.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Puedo jugar partidas online con amigos?</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        Sí, todos los juegos admiten multijugador online. Si compraste en cuenta Primaria, jugás con tu suscripción a PS Plus desde tu usuario. Si compraste en secundaria, también podés jugar online desde ese usuario.
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>¿Los juegos son originales y completos?</span>
+                        <i class="fa-solid fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        Absolutamente. Son compras oficiales descargadas directamente desde los servidores de PlayStation Network (PSN Store). Incluyen todos los modos, cinemáticas, actualizaciones y parches del juego.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================================
+         8. SECCIÓN DE CONTACTO
+         ==================================================================== -->
+    <section class="contact-section" id="contacto">
+        <div class="container">
+            <div class="section-header" style="text-align: center; max-width: 700px; margin: 0 auto 40px;">
+                <span class="section-tag"><i class="fa-solid fa-headset"></i> Atención Inmediata</span>
+                <h2 class="section-title">¿Tenés Alguna Duda o Querés Comprar?</h2>
+                <p class="section-subtitle">Escribinos directamente por WhatsApp o Instagram y te responderemos en minutos.</p>
+            </div>
+
+            <div class="contact-grid">
+                <!-- Tarjeta WhatsApp -->
+                <div class="contact-card wa-card">
+                    <div class="contact-icon-large">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </div>
+                    <h3>Atención por WhatsApp</h3>
+                    <p>Atención directa, confirmación de stock, medios de pago y entrega inmediata de tus juegos.</p>
+                    <a href="https://wa.me/5491124660453?text=Hola%2C%20quiero%20hacer%20una%20consulta%20sobre%20los%20juegos%20digitales%20%F0%9F%8E%AE" target="_blank" rel="noopener noreferrer" class="btn-contact-wa" id="directWaLink">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <span>Abrir Chat de WhatsApp</span>
+                    </a>
+                </div>
+
+                <!-- Tarjeta Instagram -->
+                <div class="contact-card ig-card">
+                    <div class="contact-icon-large">
+                        <i class="fa-brands fa-instagram"></i>
+                    </div>
+                    <h3>Seguinos en Instagram</h3>
+                    <p>Enterate de los nuevos ingresos, sorteos, promociones flash y referencias de nuestra comunidad.</p>
+                    <a href="https://www.instagram.com/zona_digitalarg/" target="_blank" rel="noopener noreferrer" class="btn-contact-ig" id="directIgLink">
+                        <i class="fa-brands fa-instagram"></i>
+                        <span>Seguinos en Instagram (@zona_digitalarg)</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ====================================================================
+         9. PIE DE PÁGINA (FOOTER)
+         ==================================================================== -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="logo logo-custom">
+                    <div class="logo-zd-badge logo-zd-badge--sm">
+                        <div class="logo-zd-brush"></div>
+                        <span class="logo-zd-text"><span class="logo-zd-z">Z</span><span class="logo-zd-d">D</span></span>
+                    </div>
+                    <div class="logo-text">
+                        <div class="logo-title" style="font-size: 1.2rem;">ZONA <span>DIGITALARG</span></div>
+                        <span class="logo-badge">Venta de Juegos Digitales</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 20px; font-size: 0.9rem; align-items: center; flex-wrap: wrap;">
+                    <a href="#inicio">Inicio</a>
+                    <a href="#catalogo">Catálogo</a>
+                    <a href="#ofertas">Ofertas</a>
+                    <a href="#cuentas-info">Cuentas</a>
+                    <a href="#contacto">Contacto</a>
+                    <a href="https://www.instagram.com/zona_digitalarg/" target="_blank" rel="noopener noreferrer" id="footerIgLink" style="color: #E1306C; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-brands fa-instagram"></i> Seguinos en Instagram
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2025 Zona Digitalarg. Todos los derechos reservados.</p>
+                <p class="footer-disclaimer">
+                    PlayStation, PS4, PS5 y PSN son marcas registradas de Sony Interactive Entertainment Inc. Zona Digitalarg es un servicio independiente de distribución digital.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+
+    <!-- ====================================================================
+         10. BOTÓN FLOTANTE DE WHATSAPP
+         ==================================================================== -->
+    <a href="https://wa.me/5491124660453?text=Hola%2C%20quiero%20hacer%20una%20consulta%20sobre%20los%20juegos%20digitales%20%F0%9F%8E%AE" target="_blank" rel="noopener noreferrer" class="floating-whatsapp" id="floatingWaBtn" title="¡Escribinos por WhatsApp!">
+        <i class="fa-brands fa-whatsapp"></i>
+        <span>¿Consultas? ¡Escribinos!</span>
+    </a>
+
+
+    <!-- ====================================================================
+         11. MODAL DE DETALLES DEL JUEGO
+         ==================================================================== -->
+    <div class="modal-overlay" id="gameModal" role="dialog" aria-modal="true">
+        <div class="modal-container">
+            <button class="modal-close-btn" id="closeGameModalBtn" aria-label="Cerrar modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="game-modal-layout">
+                <!-- Portada del Juego en el Modal -->
+                <div class="modal-media">
+                    <img id="modalGameImg" src="" alt="Portada del juego">
+                </div>
+
+                <!-- Información Detallada -->
+                <div class="modal-details">
+                    <span id="modalGameCategory" class="card-category">ACCIÓN</span>
+                    <h2 id="modalGameTitle" class="modal-game-title">Nombre del Juego</h2>
+
+                    <!-- Badges informativos (Plataformas, idiomas, peso) -->
+                    <div class="modal-info-pills" id="modalInfoPills">
+                        <!-- Generado por JS -->
+                    </div>
+
+                    <p id="modalGameDesc" class="modal-description">
+                        Descripción detallada del juego...
+                    </p>
+
+                    <!-- Selector Interactivo de Cuenta (Primaria vs Secundaria) -->
+                    <div class="account-selector-box">
+                        <div class="selector-title">
+                            <span>Elegí el tipo de cuenta:</span>
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <div class="account-tabs">
+                            <button type="button" class="account-tab active" id="tabPrimary" onclick="selectAccountType('primary')">
+                                <i class="fa-solid fa-crown"></i> Primaria
+                            </button>
+                            <button type="button" class="account-tab" id="tabSecondary" onclick="selectAccountType('secondary')">
+                                <i class="fa-solid fa-user"></i> Secundaria
+                            </button>
+                        </div>
+                        <div id="accountTabDesc" class="account-tab-desc">
+                            Jugás desde tu propio usuario personal, acumulás trofeos en tu cuenta y podés jugar tanto con o sin conexión a internet.
+                        </div>
+                    </div>
+
+                    <!-- Pie del Modal con Precio y Botón de Compra -->
+                    <div class="modal-footer-action">
+                        <div class="modal-price-display">
+                            <span class="modal-price-label" id="modalAccountTypeLabel">Precio Cuenta Primaria:</span>
+                            <span class="modal-price-value" id="modalPriceValue">$ 0</span>
+                        </div>
+
+                        <button type="button" class="btn-modal-wa" id="modalBuyWaBtn" onclick="openCheckoutForCurrentGame()">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <span>Comprar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ====================================================================
+         12. MODAL DE COMPRA Y PAGO POR TRANSFERENCIA (CHECKOUT)
+         ==================================================================== -->
+    <div class="modal-overlay" id="checkoutModal" role="dialog" aria-modal="true" aria-labelledby="checkoutModalTitle">
+        <div class="modal-container checkout-container">
+            <button class="modal-close-btn" id="closeCheckoutModalBtn" aria-label="Cerrar modal de compra">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="checkout-layout">
+                <!-- Encabezado de Compra Segura -->
+                <div class="checkout-header">
+                    <div class="checkout-header-left">
+                        <span class="checkout-secure-badge"><i class="fa-solid fa-shield-halved"></i> Compra 100% Segura</span>
+                        <h2 class="checkout-modal-title" id="checkoutModalTitle">Finalizar Compra</h2>
+                    </div>
+                    <div class="checkout-order-box">
+                        <span class="checkout-order-lbl">N° DE ORDEN</span>
+                        <span class="checkout-order-id" id="checkoutOrderNumber">ZD-1047</span>
+                    </div>
+                </div>
+ 
+                <!-- Resumen del Juego Seleccionado -->
+                <div class="checkout-summary-card">
+                    <img id="checkoutGameImg" class="checkout-game-thumb" src="" alt="Portada del juego">
+                    <div class="checkout-summary-details">
+                        <span class="checkout-game-category" id="checkoutGameCat">ACCIÓN</span>
+                        <h3 class="checkout-game-title" id="checkoutGameTitle">Nombre del Juego</h3>
+
+                        <!-- Selector interactivo de Plataforma -->
+                        <div class="checkout-config-row" id="checkoutPlatformRow">
+                            <span class="checkout-config-label"><i class="fa-brands fa-playstation"></i> Plataforma:</span>
+                            <div class="checkout-pills" id="checkoutPlatformPills">
+                                <!-- Generado por JS -->
+                            </div>
+                        </div>
+
+                        <!-- Selector interactivo de Cuenta -->
+                        <div class="checkout-config-row" id="checkoutAccountRow">
+                            <span class="checkout-config-label"><i class="fa-solid fa-user-gear"></i> Tipo de cuenta:</span>
+                            <div class="checkout-account-pills" id="checkoutAccountPills">
+                                <button type="button" class="checkout-acc-pill active" id="chkAccountPrimary" onclick="setCheckoutAccount('primary')">
+                                    <i class="fa-solid fa-crown"></i> Primaria
+                                </button>
+                                <button type="button" class="checkout-acc-pill" id="chkAccountSecondary" onclick="setCheckoutAccount('secondary')">
+                                    <i class="fa-solid fa-user"></i> Secundaria
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Fila de Total a Pagar -->
+                        <div class="checkout-total-row">
+                            <span class="checkout-total-lbl">Total a transferir:</span>
+                            <span class="checkout-total-val" id="checkoutTotalPrice">$ 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selección de Método de Pago: Transferencia -->
+                <div class="checkout-method-box">
+                    <span class="checkout-section-title">
+                        <i class="fa-solid fa-credit-card"></i> Método de Pago:
+                    </span>
+                    <div class="payment-method-item selected" id="methodTransferOption">
+                        <div class="method-radio">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="method-details">
+                            <div class="method-title-row">
+                                <span class="method-name">Transferencia Bancaria / Mercado Pago</span>
+                                <span class="method-badge">Activo</span>
+                            </div>
+                            <span class="method-desc">Transferí desde cualquier banco o billetera virtual (Mercado Pago, Ualá, Lemon, etc.).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección: Datos para realizar la transferencia -->
+                <div class="transfer-info-section" id="transferSectionContent">
+                    <h3 class="transfer-section-heading">
+                        <i class="fa-solid fa-money-bill-transfer"></i> Datos para realizar la transferencia
+                    </h3>
+
+                    <div class="transfer-details-card">
+                        <div class="transfer-detail-row">
+                            <span class="detail-label">Alias:</span>
+                            <div class="alias-action-container">
+                                <span class="detail-value alias-highlight" id="transferAliasValue">album.bruno.182.mp</span>
+                                <button type="button" class="btn-copy-alias" id="copyAliasBtn" onclick="copyAliasToClipboard()" title="Copiar alias">
+                                    <i class="fa-regular fa-copy"></i>
+                                    <span id="copyAliasBtnText">Copiar</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="transfer-detail-row">
+                            <span class="detail-label">A nombre de:</span>
+                            <span class="detail-value holder-name">Bruno Maciel Santiago Fensore</span>
+                        </div>
+                    </div>
+
+                    <!-- Código QR de Mercado Pago -->
+                    <div class="qr-container-card">
+                        <div class="qr-image-frame">
+                            <img src="qr2.jpeg" alt="QR Mercado Pago de Bruno Fensore" class="qr-image-element" id="checkoutQrImg">
+                        </div>
+                        <p class="qr-helper-text">
+                            <i class="fa-solid fa-qrcode"></i> Escaneá el QR desde tu app de Mercado Pago o banco e ingresá manualmente el monto exacto: <strong id="qrAmountNotice">$ 0</strong>
+                        </p>
+                    </div>
+
+                    <!-- Texto requerido debajo del QR -->
+                    <div class="transfer-note-box">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <p>Cuando realices la acreditación, mandanos el comprobante así realizamos tu pedido. Muchas gracias.</p>
+                    </div>
+
+                    <!-- Botón Grande: "Ya realicé la transferencia" -->
+                    <button type="button" class="btn-transfer-confirm" id="btnConfirmTransfer" onclick="submitTransferOrder()">
+                        <i class="fa-brands fa-whatsapp"></i>
+                        <span>Ya realicé la transferencia</span>
+                    </button>
+
+                    <p class="transfer-footer-hint">
+                        <i class="fa-solid fa-info-circle"></i> Al presionar el botón se abrirá WhatsApp automáticamente con los datos de tu compra y tu número de orden para que adjuntes el comprobante.
+                    </p>
+                </div>
+
+                <!-- Estado Pendiente (Feedback visual tras tocar el botón) -->
+                <div class="transfer-pending-banner" id="transferPendingBanner" style="display: none;">
+                    <div class="pending-badge-icon">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                    </div>
+                    <h4 class="pending-title">¡Orden enviada a WhatsApp!</h4>
+                    <p class="pending-description">
+                        Tu pedido <strong id="bannerOrderNumber">ZD-1047</strong> está en estado <span class="status-pending-pill">PENDIENTE DE REVISIÓN</span>.
+                    </p>
+                    <p class="pending-instruction">
+                        Por favor adjuntá el comprobante de transferencia en el chat de WhatsApp que se acaba de abrir. Revisaremos el comprobante manualmente para entregarte tu juego a la brevedad.
+                    </p>
+                    <button type="button" class="btn-reopen-whatsapp" onclick="reopenWhatsAppOrder()">
+                        <i class="fa-brands fa-whatsapp"></i> Volver a abrir WhatsApp
+                    </button>
+                </div>
+
+                <!-- ==============================================================
+                     CARRUSEL DE JUEGOS RELACIONADOS (DEBAJO DEL QR / PAGO)
+                     ============================================================== -->
+                <div class="checkout-related-section" id="checkoutRelatedSection">
+                    <div class="checkout-related-header">
+                        <div class="checkout-related-heading-box">
+                            <span class="checkout-related-tag"><i class="fa-solid fa-sparkles"></i> Recomendados para vos</span>
+                            <h4 class="checkout-related-title"><i class="fa-solid fa-fire"></i> Juegos Relacionados</h4>
+                        </div>
+                        <div class="checkout-related-arrows">
+                            <button type="button" class="chk-rel-arrow" id="chkRelPrev" onclick="scrollCheckoutRelated(-1)" aria-label="Juegos anteriores" title="Ver anteriores">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <button type="button" class="chk-rel-arrow" id="chkRelNext" onclick="scrollCheckoutRelated(1)" aria-label="Juegos siguientes" title="Ver siguientes">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="checkout-related-track" id="checkoutRelatedTrack">
+                        <!-- Generado dinámicamente desde app.js -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ====================================================================
+         12. MODAL INFORMATIVO (3 PUNTOS: CÓMO COMPRAR, GARANTÍA, ETC.)
+         ==================================================================== -->
+    <div class="modal-overlay" id="infoModal" role="dialog" aria-modal="true">
+        <div class="modal-container" style="max-width: 650px;">
+            <button class="modal-close-btn" id="closeInfoModalBtn" aria-label="Cerrar modal informativo">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="simple-modal-content">
+                <h2 class="simple-modal-title" id="infoModalTitle">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Título Informativo</span>
+                </h2>
+                <div class="simple-modal-body" id="infoModalBody">
+                    Contenido informativo...
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ====================================================================
+         ARCHIVOS JAVASCRIPT
+         ==================================================================== -->
+    <!-- Supabase JS Oficial (v2) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Configuración de Supabase -->
+    <script src="supabase-config.js"></script>
+    <!-- Catálogo base local -->
+    <script src="games.js?v=2"></script>
+    <!-- Lógica de la tienda y sincronización en vivo -->
+    <script src="app.js?v=4"></script>
+</body>
+</html>

@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración | Zona Digitalarg</title>
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Hoja de estilos del panel -->
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <!-- ====================================================================
+         1. PANTALLA DE INICIO DE SESIÓN (LOGIN)
+         ==================================================================== -->
+    <div class="login-wrapper" id="loginScreen">
+        <div class="login-card">
+            <div class="login-header">
+                <a href="../index.html" class="login-logo">
+                    <span class="login-badge">ZD</span>
+                    <span class="login-brand-text">ZONA <span>DIGITALARG</span></span>
+                </a>
+                <h1 class="login-title">Panel de Administración</h1>
+                <p class="login-subtitle">Ingresá tus credenciales autorizadas para gestionar el catálogo</p>
+            </div>
+
+            <!-- Alerta informativa de estado de conexión -->
+            <div id="loginAlertBox" style="display: none; margin-bottom: 20px; padding: 12px 14px; border-radius: 8px; font-size: 0.88rem;"></div>
+
+            <!-- Selector de modo (Iniciar Sesión vs Registrar Administrador) -->
+            <div style="display: flex; background: rgba(255, 255, 255, 0.04); padding: 4px; border-radius: 10px; margin-bottom: 22px; border: 1px solid var(--border-color);">
+                <button type="button" id="btnTabLogin" onclick="setAuthMode('login')" style="flex: 1; padding: 9px 12px; border: none; border-radius: 7px; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: var(--transition); background: var(--color-primary); color: #000;">
+                    Iniciar Sesión
+                </button>
+                <button type="button" id="btnTabRegister" onclick="setAuthMode('register')" style="flex: 1; padding: 9px 12px; border: none; border-radius: 7px; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: var(--transition); background: transparent; color: var(--text-muted);">
+                    Crear Admin
+                </button>
+            </div>
+
+            <form id="loginForm" onsubmit="handleAuthSubmit(event)">
+                <div class="form-group">
+                    <label class="form-label" for="loginEmail">Correo Electrónico</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="email" id="loginEmail" class="form-control" placeholder="tu-email@gmail.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">Contraseña</label>
+                    <div class="input-with-icon">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="loginPassword" class="form-control" placeholder="••••••••••••" required autocomplete="current-password" minlength="6">
+                    </div>
+                    <span id="authHintText" style="display: block; font-size: 0.78rem; color: var(--text-dim); margin-top: 6px;">
+                        Mínimo 6 caracteres
+                    </span>
+                </div>
+
+                <button type="submit" class="btn-primary" id="btnLoginSubmit">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    <span id="btnSubmitText">Iniciar Sesión</span>
+                </button>
+            </form>
+
+            <div style="margin-top: 24px; text-align: center;">
+                <a href="../index.html" style="color: var(--text-dim); text-decoration: none; font-size: 0.85rem; transition: var(--transition);">
+                    <i class="fa-solid fa-arrow-left"></i> Volver a la tienda pública
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ====================================================================
+         2. PANEL DE ADMINISTRACIÓN (DASHBOARD AUTENTICADO)
+         ==================================================================== -->
+    <div id="adminDashboard" style="display: none;">
+        
+        <!-- Barra de Navegación Superior -->
+        <header class="admin-navbar">
+            <div class="nav-content">
+                <a href="../index.html" target="_blank" class="nav-brand" title="Ver sitio web público">
+                    <span class="login-badge">ZD</span>
+                    <span class="login-brand-text">ZONA <span>DIGITALARG</span></span>
+                    <span class="admin-badge">Admin Panel</span>
+                </a>
+
+                <div class="nav-actions">
+                    <div class="user-pill">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <span id="currentAdminEmail">admin@zonadigital.com</span>
+                    </div>
+
+                    <a href="../index.html" target="_blank" class="btn-secondary" title="Abrir tienda en nueva pestaña">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <span>Ver Web</span>
+                    </a>
+
+                    <button type="button" class="btn-danger-outline" onclick="handleLogout()" title="Cerrar sesión">
+                        <i class="fa-solid fa-power-off"></i>
+                        <span>Salir</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenedor Principal del Panel -->
+        <main class="admin-container">
+            
+            <!-- Selector de Secciones Principales del Admin -->
+            <div class="admin-sections-nav">
+                <button type="button" class="admin-section-tab active" id="btnTabCatalog" onclick="switchAdminSection('catalog')">
+                    <i class="fa-solid fa-gamepad"></i>
+                    <span>Catálogo de Juegos</span>
+                </button>
+                <button type="button" class="admin-section-tab" id="btnTabOffers" onclick="switchAdminSection('offers')">
+                    <i class="fa-solid fa-fire" style="color: #FF5E00;"></i>
+                    <span>Ofertas & Carrusel</span>
+                    <span class="psplus-tab-badge" id="badgeOffersCount" style="background: #FF5E00; color: #fff;">0</span>
+                </button>
+                <button type="button" class="admin-section-tab" id="btnTabPsPlus" onclick="switchAdminSection('psplus')">
+                    <i class="fa-solid fa-crown" style="color: #FFE500;"></i>
+                    <span>PlayStation Plus</span>
+                    <span class="psplus-tab-badge">Precios</span>
+                </button>
+            </div>
+
+            <!-- VISTA 1: CATÁLOGO DE JUEGOS -->
+            <div id="sectionCatalogView">
+                <!-- Fila de Métricas / Resumen rápido -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon-box total">
+                            <i class="fa-solid fa-gamepad"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Total Catálogo</span>
+                            <div class="metric-value" id="statTotalGames">0</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon-box available">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Disponibles</span>
+                            <div class="metric-value" id="statAvailableGames">0</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon-box out">
+                            <i class="fa-solid fa-ban"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Sin Stock</span>
+                            <div class="metric-value" id="statOutGames">0</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon-box upcoming">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div class="metric-data">
+                            <span class="metric-label">Próximamente</span>
+                            <div class="metric-value" id="statUpcomingGames">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de Herramientas: Buscador, Filtros y Botones -->
+                <section class="toolbar-section">
+                    <div class="toolbar-filters">
+                        <!-- Buscador en tiempo real -->
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="adminSearchInput" class="search-input" placeholder="Buscar por título o género..." oninput="filterGamesList()">
+                        </div>
+
+                        <!-- Filtro por Plataforma -->
+                        <select id="adminPlatformFilter" class="filter-select" onchange="filterGamesList()">
+                            <option value="all">Todas las plataformas</option>
+                            <option value="PS5">PlayStation 5</option>
+                            <option value="PS4">PlayStation 4</option>
+                            <option value="PS3">PlayStation 3</option>
+                        </select>
+
+                        <!-- Filtro por Disponibilidad -->
+                        <select id="adminAvailabilityFilter" class="filter-select" onchange="filterGamesList()">
+                            <option value="all">Todos los estados</option>
+                            <option value="disponible">🟢 Disponible</option>
+                            <option value="sin_stock">🔴 Sin Stock</option>
+                            <option value="proximamente">🟣 Próximamente</option>
+                        </select>
+                    </div>
+
+                    <div class="toolbar-actions">
+                        <!-- Botón de migración inicial segura -->
+                        <button type="button" class="btn-migrate" id="btnMigrateData" onclick="migrateInitialCatalog()" title="Importa automáticamente todos los juegos actuales a la base de datos">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span>Migrar Catálogo Actual</span>
+                        </button>
+
+                        <!-- Botón para agregar un nuevo juego -->
+                        <button type="button" class="btn-add-game" onclick="openGameModal()">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Nuevo Juego</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Tabla de Juegos -->
+                <div class="table-wrapper">
+                    <table class="games-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">Img</th>
+                                <th>Juego / Categoría</th>
+                                <th>Plataformas</th>
+                                <th>Precios</th>
+                                <th style="width: 170px;">Disponibilidad</th>
+                                <th style="width: 110px; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gamesTableBody">
+                            <!-- Se llena dinámicamente con JavaScript -->
+                        </tbody>
+                    </table>
+
+                    <!-- Mensaje cuando no hay resultados -->
+                    <div class="empty-state" id="emptyStateBox" style="display: none;">
+                        <i class="fa-solid fa-box-open"></i>
+                        <h3>No se encontraron productos</h3>
+                        <p>Intentá cambiando los filtros o agregá un nuevo juego al catálogo.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISTA 2: GESTIÓN DE OFERTAS & CARRUSEL -->
+            <div id="sectionOffersView" style="display: none;">
+                <div class="psplus-admin-panel">
+                    
+                    <div class="psplus-admin-header">
+                        <div>
+                            <div class="psplus-badge-tag" style="background: rgba(255, 94, 0, 0.12); color: #FF5E00; border-color: rgba(255, 94, 0, 0.3);">
+                                <i class="fa-solid fa-fire"></i> Promociones Especiales
+                            </div>
+                            <h2 class="psplus-admin-title">Gestión de Ofertas & Carrusel</h2>
+                            <p class="psplus-admin-subtitle">Agregá o quitá juegos de la sección de Ofertas y definí cuáles aparecen en el Carrusel principal.</p>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <button type="button" class="btn-primary" onclick="saveAllOffersChanges(event)" id="btnSaveAllOffers" style="background: #FF5E00; border-color: #FF5E00; color: #fff;">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Guardar Cambios de Ofertas</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Panel rápido para agregar un juego a ofertas -->
+                    <div class="add-offer-box">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                            <i class="fa-solid fa-circle-plus" style="color: #FF5E00; font-size: 1.2rem;"></i>
+                            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; color: #fff; margin: 0;">Poner un Juego en Oferta</h3>
+                        </div>
+                        
+                        <div class="add-offer-grid">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="adminOfferSelectGame">Elegir Juego del Catálogo</label>
+                                <select id="adminOfferSelectGame" class="form-control" onchange="onAdminSelectGameForOffer()">
+                                    <option value="">-- Seleccioná un juego --</option>
+                                    <!-- Se llena dinámicamente con los juegos del catálogo -->
+                                </select>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="adminOfferNewPrice">Precio de Oferta ($)</label>
+                                <input type="number" id="adminOfferNewPrice" class="form-control" placeholder="Ej: 14500" oninput="calculateOfferDiscount()">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="adminOfferOldPrice">Precio Anterior ($)</label>
+                                <input type="number" id="adminOfferOldPrice" class="form-control" placeholder="Ej: 22000" oninput="calculateOfferDiscount()">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="adminOfferDiscount">Descuento (%)</label>
+                                <input type="text" id="adminOfferDiscount" class="form-control" placeholder="-30%">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; padding-top: 28px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-white); font-weight: 600; font-size: 0.88rem;">
+                                    <input type="checkbox" id="adminOfferInCarousel" checked style="width: 18px; height: 18px; accent-color: #FF5E00;">
+                                    <span>Destacar en Carrusel</span>
+                                </label>
+                            </div>
+
+                            <div style="display: flex; align-items: flex-end;">
+                                <button type="button" class="btn-primary" onclick="addGameToOffers()" style="width: 100%; justify-content: center; background: #FF5E00; border-color: #FF5E00; color: #fff;">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Activar Oferta</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grilla / Lista de Ofertas Activas -->
+                    <div style="margin-top: 30px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--text-white); display: flex; align-items: center; gap: 10px;">
+                                <i class="fa-solid fa-tags" style="color: #FF5E00;"></i>
+                                <span>Juegos en Oferta Activos</span>
+                                <span class="psplus-tab-badge" id="activeOffersCounter" style="background: #FF5E00; color: #fff;">0</span>
+                            </h3>
+                            <span style="font-size: 0.85rem; color: var(--text-dim);">
+                                Hacé clic en la estrella para mostrar o quitar del carrusel principal
+                            </span>
+                        </div>
+
+                        <div class="table-wrapper">
+                            <table class="games-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;">Img</th>
+                                        <th>Juego</th>
+                                        <th style="width: 160px;">Precio Oferta</th>
+                                        <th style="width: 160px;">Precio Tachado</th>
+                                        <th style="width: 110px;">Descuento</th>
+                                        <th style="width: 150px; text-align: center;">Carrusel</th>
+                                        <th style="width: 120px; text-align: right;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="offersTableBody">
+                                    <!-- Se llena dinámicamente con JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- VISTA 3: GESTIÓN DE PRECIOS PLAYSTATION PLUS -->
+            <div id="sectionPsPlusView" style="display: none;">
+                <div class="psplus-admin-panel">
+                    <div class="psplus-admin-header">
+                        <div>
+                            <div class="psplus-badge-tag"><i class="fa-solid fa-crown"></i> Membresías Oficiales</div>
+                            <h2 class="psplus-admin-title">Precios de PlayStation Plus</h2>
+                            <p class="psplus-admin-subtitle">Modificá los precios de cada plan y duración para PS5 y PS4 en un solo clic.</p>
+                        </div>
+                        <div class="psplus-console-selector">
+                            <button type="button" class="psplus-console-btn active" id="btnPsPlusPS5" onclick="setAdminPsPlusConsole('PS5')">
+                                <i class="fa-brands fa-playstation"></i> PlayStation 5
+                            </button>
+                            <button type="button" class="psplus-console-btn" id="btnPsPlusPS4" onclick="setAdminPsPlusConsole('PS4')">
+                                <i class="fa-brands fa-playstation"></i> PlayStation 4
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="psPlusPricesForm" onsubmit="saveAdminPsPlusPrices(event)">
+                        <div class="psplus-cards-grid">
+                            <!-- Tarjeta Essential -->
+                            <div class="psplus-admin-card tier-essential">
+                                <div class="psplus-card-top" style="border-left: 4px solid #FFE500;">
+                                    <div class="psplus-tier-badge-pill" style="color: #FFE500; background: rgba(255, 229, 0, 0.1);">
+                                        <i class="fa-solid fa-bolt"></i> Essential
+                                    </div>
+                                    <h3 class="psplus-tier-headline">PS Plus Essential</h3>
+                                    <p class="psplus-tier-sub">Online multijugador y juegos mensuales</p>
+                                </div>
+                                <div class="psplus-prices-inputs">
+                                    <div class="price-input-row">
+                                        <label><i class="fa-regular fa-calendar"></i> 1 Mes</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_essential_1" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="price-input-row">
+                                        <label><i class="fa-regular fa-calendar-days"></i> 3 Meses</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_essential_3" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="price-input-row">
+                                        <label><i class="fa-solid fa-calendar-week"></i> 6 Meses</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_essential_6" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="price-input-row">
+                                        <label><i class="fa-solid fa-calendar-check"></i> 12 Meses</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_essential_12" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tarjeta Extra -->
+                            <div class="psplus-admin-card tier-extra">
+                                <div class="psplus-card-top" style="border-left: 4px solid #00D2FF;">
+                                    <div class="psplus-tier-badge-pill" style="color: #00D2FF; background: rgba(0, 210, 255, 0.1);">
+                                        <i class="fa-solid fa-fire"></i> Extra (Recomendado)
+                                    </div>
+                                    <h3 class="psplus-tier-headline">PS Plus Extra</h3>
+                                    <p class="psplus-tier-sub">Catálogo de 400+ juegos PS4 y PS5</p>
+                                </div>
+                                <div class="psplus-prices-inputs">
+                                    <div class="price-input-row">
+                                        <label><i class="fa-regular fa-calendar"></i> 1 Mes</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_extra_1" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="price-input-row">
+                                        <label><i class="fa-regular fa-calendar-days"></i> 3 Meses</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_extra_3" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="price-input-row">
+                                        <label><i class="fa-solid fa-calendar-week"></i> 6 Meses</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_extra_6" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="price-input-row">
+                                        <label><i class="fa-solid fa-calendar-check"></i> 12 Meses</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_extra_12" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tarjeta Deluxe -->
+                            <div class="psplus-admin-card tier-deluxe">
+                                <div class="psplus-card-top" style="border-left: 4px solid #C084FC;">
+                                    <div class="psplus-tier-badge-pill" style="color: #C084FC; background: rgba(192, 132, 252, 0.1);">
+                                        <i class="fa-solid fa-crown"></i> Deluxe (Máximo)
+                                    </div>
+                                    <h3 class="psplus-tier-headline">PS Plus Deluxe</h3>
+                                    <p class="psplus-tier-sub">Clásicos PS1/PS2/PSP y pruebas</p>
+                                </div>
+                                <div class="psplus-prices-inputs">
+                                    <div class="price-input-row">
+                                        <label><i class="fa-regular fa-calendar"></i> 1 Mes</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_deluxe_1" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="price-input-row">
+                                        <label><i class="fa-regular fa-calendar-days"></i> 3 Meses</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_deluxe_3" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="price-input-row">
+                                        <label><i class="fa-solid fa-calendar-week"></i> 6 Meses</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_deluxe_6" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="price-input-row">
+                                        <label><i class="fa-solid fa-calendar-check"></i> 12 Meses</label>
+                                        <div class="currency-input-wrap">
+                                            <span>$</span>
+                                            <input type="number" id="psplus_deluxe_12" min="0" step="100" class="form-control" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Barra de Acciones de PS Plus -->
+                        <div class="psplus-admin-actions">
+                            <button type="submit" class="btn-primary" id="btnSavePsPlus">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                <span>Guardar Precios de PlayStation Plus</span>
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="resetAdminPsPlusPrices()">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>Restablecer Precios Originales</span>
+                            </button>
+                            <span id="psplusSaveHint" class="psplus-save-hint">
+                                <i class="fa-solid fa-circle-check"></i> Los precios se reflejan en la tienda pública al instante.
+                            </span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+
+    <!-- ====================================================================
+         3. MODAL DE CREACIÓN / EDICIÓN DE JUEGO
+         ==================================================================== -->
+    <div class="modal-overlay" id="gameEditModal">
+        <div class="modal-card">
+            
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalFormTitle">
+                    <i class="fa-solid fa-gamepad"></i>
+                    <span>Agregar Nuevo Juego</span>
+                </h2>
+                <button type="button" class="btn-close-modal" onclick="closeGameModal()" title="Cerrar ventana">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="gameForm" onsubmit="saveGame(event)">
+                <input type="hidden" id="formGameId">
+
+                <div class="modal-body">
+                    
+                    <!-- 1. Nombre del Juego -->
+                    <div class="form-group">
+                        <label class="form-label" for="formTitle">Título del Juego *</label>
+                        <input type="text" id="formTitle" class="form-control" placeholder="Ej: EA SPORTS FC 27" required>
+                    </div>
+
+                    <!-- 2. Plataformas y Categoría -->
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Plataformas *</label>
+                            <div class="platforms-selector">
+                                <label class="platform-chip" id="chipPS5">
+                                    <input type="checkbox" id="checkPS5" value="PS5" onchange="togglePlatformChip(this); updatePriceInputsVisibility();">
+                                    <span>PS5</span>
+                                </label>
+                                <label class="platform-chip" id="chipPS4">
+                                    <input type="checkbox" id="checkPS4" value="PS4" onchange="togglePlatformChip(this); updatePriceInputsVisibility();">
+                                    <span>PS4</span>
+                                </label>
+                                <label class="platform-chip" id="chipPS3">
+                                    <input type="checkbox" id="checkPS3" value="PS3" onchange="togglePlatformChip(this); updatePriceInputsVisibility();">
+                                    <span>PS3</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="formCategory">Categoría</label>
+                            <select id="formCategory" class="form-control">
+                                <option value="accion">Acción</option>
+                                <option value="deportes">Deportes</option>
+                                <option value="aventura">Aventura</option>
+                                <option value="terror">Terror</option>
+                                <option value="carreras">Carreras</option>
+                                <option value="lucha">Lucha</option>
+                                <option value="rpg">RPG / Rol</option>
+                                <option value="familiar">Familiar / Cooperativo</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 3. Estado de Disponibilidad (Regla 4) -->
+                    <div class="form-group">
+                        <label class="form-label">Estado de Disponibilidad *</label>
+                        <div class="availability-radios">
+                            <label class="avail-card-option opt-disponible selected" id="optDispo">
+                                <input type="radio" name="formAvailability" value="disponible" checked onchange="updateAvailabilityRadioUi()">
+                                <span class="avail-title"><i class="fa-solid fa-circle-check"></i> Disponible</span>
+                                <span class="avail-desc">Precios visibles y compra habilitada</span>
+                            </label>
+
+                            <label class="avail-card-option opt-sin_stock" id="optStock">
+                                <input type="radio" name="formAvailability" value="sin_stock" onchange="updateAvailabilityRadioUi()">
+                                <span class="avail-title"><i class="fa-solid fa-ban"></i> Sin Stock</span>
+                                <span class="avail-desc">Visible pero compra deshabilitada</span>
+                            </label>
+
+                            <label class="avail-card-option opt-proximamente" id="optProxi">
+                                <input type="radio" name="formAvailability" value="proximamente" onchange="updateAvailabilityRadioUi()">
+                                <span class="avail-title"><i class="fa-solid fa-clock"></i> Próximamente</span>
+                                <span class="avail-desc">Estado de preventa / lanzamiento</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 4. Precios por Plataforma y Tipo de Cuenta -->
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
+                        <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-tags" style="color: var(--color-primary);"></i>
+                            <span>Precios por Plataforma y Cuenta</span>
+                        </h4>
+
+                        <!-- Precios PS5 / General -->
+                        <div id="pricesPS5Section" class="form-grid-2" style="margin-bottom: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="formPricePrimary">Precio Primaria (PS5) ($)</label>
+                                <input type="number" id="formPricePrimary" class="form-control" placeholder="Ej: 29500" min="0">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="formPriceSecondary">Precio Secundaria (PS5) ($)</label>
+                                <input type="number" id="formPriceSecondary" class="form-control" placeholder="Ej: 18500 (vacío si no tiene)" min="0">
+                            </div>
+                        </div>
+
+                        <!-- Precios específicos PS4 (si difieren de PS5) -->
+                        <div id="pricesPS4Section" class="form-grid-2" style="margin-bottom: 12px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="formPricePrimaryPS4">Precio Primaria (PS4) ($)</label>
+                                <input type="number" id="formPricePrimaryPS4" class="form-control" placeholder="Opcional si es igual a PS5" min="0">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="formPriceSecondaryPS4">Precio Secundaria (PS4) ($)</label>
+                                <input type="number" id="formPriceSecondaryPS4" class="form-control" placeholder="Opcional si es igual a PS5" min="0">
+                            </div>
+                        </div>
+
+                        <!-- Precio PS3 -->
+                        <div id="pricesPS3Section" class="form-group" style="margin-bottom: 0; display: none;">
+                            <label class="form-label" for="formPricePS3">Precio PlayStation 3 ($)</label>
+                            <input type="number" id="formPricePS3" class="form-control" placeholder="Ej: 8500" min="0">
+                        </div>
+                    </div>
+
+                    <!-- 5. Opciones de Oferta y Destacado -->
+                    <div class="form-grid-2">
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 700; margin-bottom: 10px;">
+                                <input type="checkbox" id="formIsOffer" style="accent-color: var(--color-primary); width: 16px; height: 16px;" onchange="toggleOfferInputs(this.checked)">
+                                <span>¿Está en Oferta?</span>
+                            </label>
+                            
+                            <div id="offerInputsBox" style="display: none; gap: 10px; flex-direction: column;">
+                                <input type="number" id="formOldPricePrimary" class="form-control" placeholder="Precio anterior tachado ($)">
+                                <input type="text" id="formDiscount" class="form-control" placeholder="Texto de descuento (ej: -30%)">
+                            </div>
+                        </div>
+
+                        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; display: flex; align-items: center;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 700;">
+                                <input type="checkbox" id="formIsFeatured" style="accent-color: var(--color-primary); width: 16px; height: 16px;">
+                                <div>
+                                    <span>Juego Destacado</span>
+                                    <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: 400;">Aparecerá en los primeros lugares del catálogo</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 6. Portada del Juego (Subir o URL) -->
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label class="form-label">Portada del Juego *</label>
+                        
+                        <div class="image-upload-box">
+                            <div class="image-preview-frame" id="coverPreviewFrame">
+                                <i class="fa-regular fa-image" id="coverPlaceholderIcon"></i>
+                                <img id="coverPreviewImg" src="" alt="Previsualización" style="display: none;">
+                            </div>
+
+                            <div class="image-upload-controls">
+                                <!-- Opción A: Subir imagen directa -->
+                                <div style="margin-bottom: 10px;">
+                                    <label class="btn-file-upload">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        <span>Subir foto desde este dispositivo</span>
+                                        <input type="file" id="formCoverFile" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+                                    </label>
+                                    <span id="uploadFileNameHint" style="font-size: 0.8rem; color: var(--text-dim); margin-left: 8px;"></span>
+                                </div>
+
+                                <!-- Opción B: Ingresar URL o archivo existente -->
+                                <div>
+                                    <input type="text" id="formImageUrl" class="form-control" placeholder="O pegá la URL / nombre de archivo existente (ej: cod m3 3.jpg)" oninput="updateCoverPreview(this.value)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 7. Ficha Técnica y Descripción -->
+                    <div class="form-grid-3">
+                        <div class="form-group">
+                            <label class="form-label" for="formGenre">Género</label>
+                            <input type="text" id="formGenre" class="form-control" placeholder="Ej: Acción / Disparos">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="formLanguages">Idiomas</label>
+                            <input type="text" id="formLanguages" class="form-control" placeholder="Ej: Español Latino, Inglés" value="Español Latino, Inglés">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="formSize">Espacio en disco</label>
+                            <input type="text" id="formSize" class="form-control" placeholder="Ej: Aprox. 60 GB">
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" for="formDescription">Descripción</label>
+                        <textarea id="formDescription" class="form-control" rows="3" placeholder="Breve sinopsis o detalles del juego para los clientes..."></textarea>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeGameModal()">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="btnSaveGame" style="width: auto; padding: 10px 24px;">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        <span>Guardar Cambios</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- ====================================================================
+         4. MODAL DE CONFIRMACIÓN PARA ELIMINAR (Regla 3)
+         ==================================================================== -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-body delete-modal-content">
+                <div class="delete-icon-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: #fff; margin-bottom: 8px;">¿Eliminar este juego?</h3>
+                <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 20px;">
+                    Estás a punto de borrar <strong id="deleteGameTitle" style="color: #fff;">este juego</strong> del catálogo. Esta acción no se puede deshacer.
+                </p>
+
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <button type="button" class="btn-secondary" onclick="closeDeleteModal()" style="flex: 1;">Cancelar</button>
+                    <button type="button" class="btn-primary" id="btnConfirmDelete" onclick="executeDeleteGame()" style="flex: 1; background: #EF4444; color: #fff;">
+                        <i class="fa-solid fa-trash"></i> Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Contenedor para notificaciones Toast -->
+    <div class="toast-container" id="toastContainer"></div>
+
+
+    <!-- ====================================================================
+         SCRIPTS
+         ==================================================================== -->
+    <!-- Supabase JS Oficial (v2) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Configuración compartida con la web pública -->
+    <script src="../supabase-config.js"></script>
+    
+    <!-- Datos locales actuales para permitir la importación automática -->
+    <script src="../games.js"></script>
+    
+    <!-- Lógica del Panel de Administración -->
+    <script src="admin.js?v=2"></script>
+</body>
+</html>

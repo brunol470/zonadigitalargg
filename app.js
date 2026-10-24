@@ -162,6 +162,11 @@ function getUpdatedPriceForGame(game) {
     const t = (game.title || '').toLowerCase().trim();
     const id = Number(game.id);
 
+    // 1. Prioridad absoluta: Precios modificados por el administrador desde el panel
+    if (typeof window !== 'undefined' && window.ADMIN_CUSTOM_PRICES && window.ADMIN_CUSTOM_PRICES[t]) {
+        return window.ADMIN_CUSTOM_PRICES[t];
+    }
+
     if (id === 32 || t.includes('witcher 3')) {
         return { price_primary: 25000, price_secondary: 18000, price_primary_ps4: 25000, price_secondary_ps4: 18000 };
     }
@@ -319,7 +324,7 @@ function getUpdatedPriceForGame(game) {
         return { price_primary: 10000, price_secondary: 7500, price_primary_ps4: 10000, price_secondary_ps4: 7500 };
     }
     if (t.includes('days gone')) {
-        return { price_primary: 20000, price_secondary: 10000, price_primary_ps4: 20000, price_secondary_ps4: 10000 };
+        return { price_primary: 27000, price_secondary: 10000, price_primary_ps4: 27000, price_secondary_ps4: 10000 };
     }
     if (t.includes('bloodborne')) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
@@ -400,6 +405,18 @@ async function syncCatalogWithSupabase() {
                             }
                         });
                         if (typeof renderPsPlusSection === 'function') renderPsPlusSection();
+                    }
+                } catch(e) {}
+                return;
+            }
+
+            // Sincronización reactiva de precios modificados por el admin
+            if (g.title === '__admin_overrides__' || g.category === 'prices_config') {
+                try {
+                    const customPrices = JSON.parse(g.description);
+                    if (customPrices && typeof customPrices === 'object') {
+                        window.ADMIN_CUSTOM_PRICES = customPrices;
+                        try { localStorage.setItem('zd_admin_prices', g.description); } catch(e) {}
                     }
                 } catch(e) {}
                 return;

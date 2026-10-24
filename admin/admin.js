@@ -95,6 +95,11 @@ function getUpdatedPriceForGame(game) {
     const t = (game.title || '').toLowerCase().trim();
     const id = Number(game.id);
 
+    // 1. Prioridad absoluta: Precios modificados por el administrador desde el panel
+    if (typeof window !== 'undefined' && window.ADMIN_CUSTOM_PRICES && window.ADMIN_CUSTOM_PRICES[t]) {
+        return window.ADMIN_CUSTOM_PRICES[t];
+    }
+
     if (id === 32 || t.includes('witcher 3')) {
         return { price_primary: 25000, price_secondary: 18000, price_primary_ps4: 25000, price_secondary_ps4: 18000 };
     }
@@ -252,7 +257,7 @@ function getUpdatedPriceForGame(game) {
         return { price_primary: 10000, price_secondary: 7500, price_primary_ps4: 10000, price_secondary_ps4: 7500 };
     }
     if (t.includes('days gone')) {
-        return { price_primary: 20000, price_secondary: 10000, price_primary_ps4: 20000, price_secondary_ps4: 10000 };
+        return { price_primary: 27000, price_secondary: 10000, price_primary_ps4: 27000, price_secondary_ps4: 10000 };
     }
     if (t.includes('bloodborne')) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
@@ -557,6 +562,14 @@ async function loadGames() {
                             }
                         });
                         renderAdminPsPlus();
+                    }
+                } catch(e) {}
+            } else if (g.title === '__admin_overrides__' || g.category === 'prices_config') {
+                try {
+                    const customPrices = JSON.parse(g.description);
+                    if (customPrices && typeof customPrices === 'object') {
+                        window.ADMIN_CUSTOM_PRICES = customPrices;
+                        try { localStorage.setItem('zd_admin_prices', g.description); } catch(e) {}
                     }
                 } catch(e) {}
             } else if (g.title === '__deleted_games__' || g.category === 'deleted_config') {
@@ -1210,6 +1223,45 @@ async function saveGame(e) {
                     } catch(e) {}
                 }
             }
+
+            // Guardar precios en ADMIN_CUSTOM_PRICES para que el panel mantenga el precio modificado
+            if (!window.ADMIN_CUSTOM_PRICES) window.ADMIN_CUSTOM_PRICES = {};
+            const titleKey = (gamePayload.title || '').toLowerCase().trim();
+            window.ADMIN_CUSTOM_PRICES[titleKey] = {
+                price_primary: gamePayload.price_primary,
+                price_secondary: gamePayload.price_secondary,
+                price_primary_ps4: gamePayload.price_primary_ps4,
+                price_secondary_ps4: gamePayload.price_secondary_ps4,
+                is_offer: gamePayload.is_offer,
+                old_price_primary: gamePayload.old_price_primary,
+                discount: gamePayload.discount
+            };
+            try { localStorage.setItem('zd_admin_prices', JSON.stringify(window.ADMIN_CUSTOM_PRICES)); } catch(e) {}
+
+            try {
+                const { data: existingPrices } = await sb
+                    .from('games')
+                    .select('id')
+                    .eq('title', '__admin_overrides__')
+                    .maybeSingle();
+
+                const payload = {
+                    title: '__admin_overrides__',
+                    category: 'prices_config',
+                    description: JSON.stringify(window.ADMIN_CUSTOM_PRICES),
+                    image: 'zd-logo-full.png',
+                    platforms: ['PS4', 'PS5'],
+                    price_primary: 0,
+                    availability: 'disponible',
+                    updated_at: new Date().toISOString()
+                };
+
+                if (existingPrices && existingPrices.id) {
+                    await sb.from('games').update(payload).eq('id', existingPrices.id);
+                } else {
+                    await sb.from('games').insert([payload]);
+                }
+            } catch(e) {}
 
             showToast(gameId ? "¡Juego actualizado con éxito!" : "¡Juego agregado al catálogo con éxito!", "success");
             closeGameModal();

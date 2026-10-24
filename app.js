@@ -1336,7 +1336,7 @@ function openCheckoutForOffer(offerIndex) {
     let game = null;
     const gamesList = typeof GAMES_DATA !== 'undefined' ? GAMES_DATA : [];
 
-    // 1. Buscar primero por coincidencia exacta de título
+    // 1. Buscar primero por coincidencia exacta o inteligente de título
     if (offer.title) {
         const normOffer = offer.title.toLowerCase().trim();
         game = gamesList.find(g => (g.title || '').toLowerCase().trim() === normOffer);
@@ -1345,6 +1345,19 @@ function openCheckoutForOffer(offerIndex) {
                 const gt = (g.title || '').toLowerCase().trim();
                 return gt.includes(normOffer) || normOffer.includes(gt);
             });
+        }
+        if (!game) {
+            if (normOffer.includes('last of us') && (normOffer.includes('2') || normOffer.includes('parte 2') || normOffer.includes('part 2'))) {
+                game = gamesList.find(g => (g.title || '').toLowerCase().includes('last of us') && (g.title || '').includes('2'));
+            } else if (normOffer.includes('last of us')) {
+                game = gamesList.find(g => (g.title || '').toLowerCase().includes('last of us'));
+            } else if (normOffer.includes('resident evil 4') || normOffer.includes('re4')) {
+                game = gamesList.find(g => (g.title || '').toLowerCase().includes('resident evil 4'));
+            } else if (normOffer.includes('cyberpunk')) {
+                game = gamesList.find(g => (g.title || '').toLowerCase().includes('cyberpunk'));
+            } else if (normOffer.includes('naruto')) {
+                game = gamesList.find(g => (g.title || '').toLowerCase().includes('naruto'));
+            }
         }
     }
 
@@ -2377,11 +2390,20 @@ function initNovedadesCarousel() {
     const nextBtn = document.getElementById('novedadesNext');
     const indicators = document.getElementById('novedadesIndicators');
 
+    // Detener cualquier timer previo
+    if (novedadesTimer) {
+        clearInterval(novedadesTimer);
+        novedadesTimer = null;
+    }
+
     if (!track || typeof NOVEDADES_DATA === 'undefined' || NOVEDADES_DATA.length <= 1) {
         if (prevBtn) prevBtn.style.display = 'none';
         if (nextBtn) nextBtn.style.display = 'none';
         return;
     }
+
+    if (prevBtn) prevBtn.style.display = '';
+    if (nextBtn) nextBtn.style.display = '';
 
     function goToSlide(index) {
         currentNovedadIndex = (index + NOVEDADES_DATA.length) % NOVEDADES_DATA.length;
@@ -2402,22 +2424,25 @@ function initNovedadesCarousel() {
         }
     }
 
+    // Usar onclick directo para evitar que se acumulen múltiples clics al recargar
     if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
+        nextBtn.onclick = (e) => {
+            e.preventDefault();
             goToSlide(currentNovedadIndex + 1);
             resetAutoplay();
-        });
+        };
     }
 
     if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
+        prevBtn.onclick = (e) => {
+            e.preventDefault();
             goToSlide(currentNovedadIndex - 1);
             resetAutoplay();
-        });
+        };
     }
 
     if (indicators) {
-        indicators.addEventListener('click', (e) => {
+        indicators.onclick = (e) => {
             const dot = e.target.closest('.carousel-dot');
             if (dot) {
                 const targetIndex = parseInt(dot.getAttribute('data-slide'), 10);
@@ -2426,7 +2451,7 @@ function initNovedadesCarousel() {
                     resetAutoplay();
                 }
             }
-        });
+        };
     }
 
     function startAutoplay() {
@@ -2448,7 +2473,8 @@ function initNovedadesCarousel() {
         startAutoplay();
     }
 
-    if (container) {
+    if (container && !container.dataset.novedadesBound) {
+        container.dataset.novedadesBound = 'true';
         container.addEventListener('mouseenter', stopAutoplay);
         container.addEventListener('mouseleave', startAutoplay);
 
@@ -2502,30 +2528,68 @@ function renderOffersShowcase() {
         // Buscar el juego real en el catálogo para tener precios y datos siempre precisos
         const norm = (offer.title || '').toLowerCase().trim();
         const gamesList = typeof GAMES_DATA !== 'undefined' ? GAMES_DATA : [];
-        const matchedGame = gamesList.find(g => {
-            const gt = (g.title || '').toLowerCase().trim();
-            return gt === norm || gt.includes(norm) || norm.includes(gt);
-        });
+        let matchedGame = gamesList.find(g => (g.title || '').toLowerCase().trim() === norm);
+        if (!matchedGame) {
+            matchedGame = gamesList.find(g => {
+                const gt = (g.title || '').toLowerCase().trim();
+                return gt.includes(norm) || norm.includes(gt);
+            });
+        }
+        if (!matchedGame) {
+            if (norm.includes('last of us') && (norm.includes('2') || norm.includes('parte 2') || norm.includes('part 2'))) {
+                matchedGame = gamesList.find(g => (g.title || '').toLowerCase().includes('last of us') && (g.title || '').includes('2'));
+            } else if (norm.includes('last of us')) {
+                matchedGame = gamesList.find(g => (g.title || '').toLowerCase().includes('last of us'));
+            } else if (norm.includes('resident evil 4') || norm.includes('re4')) {
+                matchedGame = gamesList.find(g => (g.title || '').toLowerCase().includes('resident evil 4'));
+            } else if (norm.includes('cyberpunk')) {
+                matchedGame = gamesList.find(g => (g.title || '').toLowerCase().includes('cyberpunk'));
+            } else if (norm.includes('naruto')) {
+                matchedGame = gamesList.find(g => (g.title || '').toLowerCase().includes('naruto'));
+            }
+        }
 
-        const effectiveNewPrice = Number(offer.newPrice) || Number(offer.price) || (matchedGame ? Number(matchedGame.pricePrimary) : 0);
-        const effectiveOldPrice = Number(offer.oldPrice) || (matchedGame ? Number(matchedGame.oldPricePrimary) : (effectiveNewPrice ? Math.round(effectiveNewPrice * 1.3) : 0));
-        const effectiveDiscount = offer.discount || (matchedGame ? matchedGame.discount : (effectiveOldPrice > effectiveNewPrice ? `-${Math.round(((effectiveOldPrice - effectiveNewPrice) / effectiveOldPrice) * 100)}%` : null));
+        let effectiveNewPrice = Number(offer.newPrice) || Number(offer.price) || 0;
+        if (!effectiveNewPrice && matchedGame) {
+            effectiveNewPrice = Number(matchedGame.pricePrimary) || 0;
+        }
+        if (!effectiveNewPrice) {
+            if (norm.includes('last of us')) effectiveNewPrice = 22000;
+            else if (norm.includes('resident evil 4')) effectiveNewPrice = 11000;
+            else effectiveNewPrice = 16500;
+        }
+
+        let effectiveOldPrice = Number(offer.oldPrice) || 0;
+        if (!effectiveOldPrice && matchedGame) {
+            effectiveOldPrice = Number(matchedGame.oldPricePrimary) || 0;
+        }
+        if (!effectiveOldPrice || effectiveOldPrice <= effectiveNewPrice) {
+            effectiveOldPrice = Math.round(effectiveNewPrice * 1.35);
+        }
+
+        let effectiveDiscount = offer.discount;
+        if (!effectiveDiscount && effectiveOldPrice > effectiveNewPrice) {
+            const pct = Math.round(((effectiveOldPrice - effectiveNewPrice) / effectiveOldPrice) * 100);
+            effectiveDiscount = `-${pct}%`;
+        }
+
         const effectiveCover = resolveGameCover(offer.image || (matchedGame ? matchedGame.image : ''), offer.title);
         const effectivePlatform = offer.platform || (matchedGame && matchedGame.platforms ? matchedGame.platforms.join(' / ') : 'PS4 / PS5');
+        const displayTitle = matchedGame ? matchedGame.title : offer.title;
 
         return `
             <div class="offer-showcase-slide ${activeClass}" data-index="${index}">
-                <img src="${effectiveCover}" alt="${escapeHtml(offer.title)}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80';">
+                <img src="${effectiveCover}" alt="${escapeHtml(displayTitle)}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80';">
                 <div class="offer-showcase-overlay">
                     <span class="offer-showcase-tag"><i class="fa-solid fa-fire"></i> ${escapeHtml(offer.tag || 'OFERTA DESTACADA')}</span>
-                    <h3 class="offer-showcase-title">${escapeHtml(offer.title)}</h3>
+                    <h3 class="offer-showcase-title">${escapeHtml(displayTitle)}</h3>
                     <div class="offer-showcase-platform"><i class="fa-brands fa-playstation"></i> ${escapeHtml(effectivePlatform)}</div>
                     <div class="offer-showcase-pricing">
                         ${effectiveOldPrice && effectiveOldPrice > effectiveNewPrice ? `<span class="offer-showcase-old-price">${formatPrice(effectiveOldPrice)}</span>` : ''}
                         <span class="offer-showcase-new-price">${formatPrice(effectiveNewPrice)}</span>
                         ${effectiveDiscount ? `<span class="offer-showcase-discount">${escapeHtml(effectiveDiscount)}</span>` : ''}
                     </div>
-                    <button type="button" class="offer-showcase-cta" onclick="openCheckoutForOffer(${index})" title="Comprar oferta de ${escapeHtml(offer.title)}">
+                    <button type="button" class="offer-showcase-cta" onclick="openCheckoutForOffer(${index})" title="Comprar oferta de ${escapeHtml(displayTitle)}">
                         <i class="fa-solid fa-cart-shopping"></i> Comprar Oferta
                     </button>
                 </div>
@@ -2547,11 +2611,20 @@ function initOffersShowcase() {
     const nextBtn = document.getElementById('offersNext');
     const indicators = document.getElementById('offersIndicators');
 
+    // Siempre limpiar cualquier temporizador previo para evitar múltiples timers compitiendo
+    if (offersTimer) {
+        clearInterval(offersTimer);
+        offersTimer = null;
+    }
+
     if (!track || typeof OFERTAS_SHOWCASE_DATA === 'undefined' || OFERTAS_SHOWCASE_DATA.length <= 1) {
         if (prevBtn) prevBtn.style.display = 'none';
         if (nextBtn) nextBtn.style.display = 'none';
         return;
     }
+
+    if (prevBtn) prevBtn.style.display = '';
+    if (nextBtn) nextBtn.style.display = '';
 
     function goToSlide(index) {
         currentOfferIndex = (index + OFERTAS_SHOWCASE_DATA.length) % OFERTAS_SHOWCASE_DATA.length;
@@ -2572,22 +2645,25 @@ function initOffersShowcase() {
         }
     }
 
+    // Usar onclick directo para garantizar que NUNCA se dupliquen eventos
     if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
+        nextBtn.onclick = (e) => {
+            e.preventDefault();
             goToSlide(currentOfferIndex + 1);
             resetAutoplay();
-        });
+        };
     }
 
     if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
+        prevBtn.onclick = (e) => {
+            e.preventDefault();
             goToSlide(currentOfferIndex - 1);
             resetAutoplay();
-        });
+        };
     }
 
     if (indicators) {
-        indicators.addEventListener('click', (e) => {
+        indicators.onclick = (e) => {
             const dot = e.target.closest('.carousel-dot');
             if (dot) {
                 const targetIndex = parseInt(dot.getAttribute('data-slide'), 10);
@@ -2596,7 +2672,7 @@ function initOffersShowcase() {
                     resetAutoplay();
                 }
             }
-        });
+        };
     }
 
     function startAutoplay() {
@@ -2618,7 +2694,8 @@ function initOffersShowcase() {
         startAutoplay();
     }
 
-    if (container) {
+    if (container && !container.dataset.offersBound) {
+        container.dataset.offersBound = 'true';
         container.addEventListener('mouseenter', stopAutoplay);
         container.addEventListener('mouseleave', startAutoplay);
 

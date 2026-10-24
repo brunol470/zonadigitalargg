@@ -133,6 +133,10 @@ img {
     max-width: 1380px;
 }
 
+.site-header nav {
+    margin-left: clamp(28px, 4vw, 60px);
+}
+
 /* Logo */
 .logo {
     display: flex;
@@ -302,6 +306,7 @@ img {
 
 .nav-link-ig {
     white-space: nowrap;
+    margin-left: clamp(14px, 2vw, 26px);
 }
 
 .nav-link-ig i {
@@ -418,6 +423,7 @@ img {
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-left: clamp(16px, 2.5vw, 32px);
 }
 
 /* Botón de 3 Puntos */
@@ -3225,6 +3231,18 @@ img {
 }
 
 @media (max-width: 1024px) {
+    .site-header nav {
+        margin-left: 0;
+    }
+
+    .nav-link-ig {
+        margin-left: 0;
+    }
+
+    .nav-actions {
+        margin-left: 0;
+    }
+
     .nav-links {
         display: none;
         position: absolute;

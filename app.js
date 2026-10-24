@@ -405,6 +405,17 @@ async function syncCatalogWithSupabase() {
                 return;
             }
 
+            // Sincronización reactiva de juegos eliminados desde el panel admin
+            if (g.title === '__deleted_games__' || g.category === 'deleted_config') {
+                try {
+                    const deleted = JSON.parse(g.description);
+                    if (Array.isArray(deleted)) {
+                        window.DELETED_GAMES_LIST = deleted;
+                    }
+                } catch(e) {}
+                return;
+            }
+
             // Sincronización reactiva del carrusel de ofertas guardado desde el panel admin
             if (g.title === '__offers_showcase__' || g.category === 'offers_config') {
                 try {
@@ -461,11 +472,15 @@ async function syncCatalogWithSupabase() {
             }
         });
 
-        // Fusionar juegos de Supabase con los locales (para que juegos recién agregados aparezcan de inmediato)
+        // Fusionar juegos de Supabase con los locales (excluyendo juegos eliminados)
         if (typeof GAMES_DATA !== 'undefined') {
             const dbTitles = new Set(ps4ps5Games.map(g => (g.title || '').toLowerCase().trim()));
-            const missingLocal = GAMES_DATA.filter(g => !dbTitles.has((g.title || '').toLowerCase().trim()));
-            const merged = [...ps4ps5Games, ...missingLocal];
+            const deletedSet = new Set((window.DELETED_GAMES_LIST || []).map(t => String(t).toLowerCase().trim()));
+            const missingLocal = GAMES_DATA.filter(g => {
+                const titleNorm = (g.title || '').toLowerCase().trim();
+                return !dbTitles.has(titleNorm) && !deletedSet.has(titleNorm);
+            });
+            const merged = [...ps4ps5Games.filter(g => !deletedSet.has((g.title || '').toLowerCase().trim())), ...missingLocal];
 
             GAMES_DATA.length = 0;
             GAMES_DATA.push(...merged);
@@ -476,8 +491,12 @@ async function syncCatalogWithSupabase() {
         // Actualizamos PS3_GAMES_DATA de la misma forma
         if (typeof PS3_GAMES_DATA !== 'undefined') {
             const dbPs3Titles = new Set(ps3Games.map(g => (g.title || '').toLowerCase().trim()));
-            const missingLocalPs3 = PS3_GAMES_DATA.filter(g => !dbPs3Titles.has((g.title || '').toLowerCase().trim()));
-            const mergedPs3 = [...ps3Games, ...missingLocalPs3];
+            const deletedSet = new Set((window.DELETED_GAMES_LIST || []).map(t => String(t).toLowerCase().trim()));
+            const missingLocalPs3 = PS3_GAMES_DATA.filter(g => {
+                const titleNorm = (g.title || '').toLowerCase().trim();
+                return !dbPs3Titles.has(titleNorm) && !deletedSet.has(titleNorm);
+            });
+            const mergedPs3 = [...ps3Games.filter(g => !deletedSet.has((g.title || '').toLowerCase().trim())), ...missingLocalPs3];
 
             PS3_GAMES_DATA.length = 0;
             PS3_GAMES_DATA.push(...mergedPs3);
@@ -1287,6 +1306,10 @@ function openCheckoutForNovedad(novedadIndex) {
     }
 
     if (game) {
+        // Si figura disponible en novedades, asegurar que no bloquee el checkout
+        game.availability = 'disponible';
+        game.inStock = true;
+
         let preferredPlat = 'PS5';
         if (item.platforms && item.platforms.includes('PS5')) {
             preferredPlat = 'PS5';
@@ -1331,6 +1354,9 @@ function openCheckoutForOffer(offerIndex) {
     }
 
     if (game) {
+        game.availability = 'disponible';
+        game.inStock = true;
+
         let preferredPlat = 'PS5';
         if (offer.platform && offer.platform.includes('PS4') && !offer.platform.includes('PS5')) {
             preferredPlat = 'PS4';
@@ -2472,23 +2498,35 @@ function renderOffersShowcase() {
     // Armado de slides con imágenes grandes
     track.innerHTML = OFERTAS_SHOWCASE_DATA.map((offer, index) => {
         const activeClass = index === 0 ? 'active' : '';
-        const waMsg = encodeURIComponent(`Hola, quiero aprovechar la OFERTA de "${offer.title}" (${offer.platform}) por ${formatPrice(offer.newPrice)} 🎮`);
-        const waUrl = `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${waMsg}`;
+
+        // Buscar el juego real en el catálogo para tener precios y datos siempre precisos
+        const norm = (offer.title || '').toLowerCase().trim();
+        const gamesList = typeof GAMES_DATA !== 'undefined' ? GAMES_DATA : [];
+        const matchedGame = gamesList.find(g => {
+            const gt = (g.title || '').toLowerCase().trim();
+            return gt === norm || gt.includes(norm) || norm.includes(gt);
+        });
+
+        const effectiveNewPrice = Number(offer.newPrice) || Number(offer.price) || (matchedGame ? Number(matchedGame.pricePrimary) : 0);
+        const effectiveOldPrice = Number(offer.oldPrice) || (matchedGame ? Number(matchedGame.oldPricePrimary) : (effectiveNewPrice ? Math.round(effectiveNewPrice * 1.3) : 0));
+        const effectiveDiscount = offer.discount || (matchedGame ? matchedGame.discount : (effectiveOldPrice > effectiveNewPrice ? `-${Math.round(((effectiveOldPrice - effectiveNewPrice) / effectiveOldPrice) * 100)}%` : null));
+        const effectiveCover = resolveGameCover(offer.image || (matchedGame ? matchedGame.image : ''), offer.title);
+        const effectivePlatform = offer.platform || (matchedGame && matchedGame.platforms ? matchedGame.platforms.join(' / ') : 'PS4 / PS5');
 
         return `
             <div class="offer-showcase-slide ${activeClass}" data-index="${index}">
-                <img src="${resolveGameCover(offer.image, offer.title)}" alt="${escapeHtml(offer.title)}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80';">
+                <img src="${effectiveCover}" alt="${escapeHtml(offer.title)}" loading="lazy" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1200&q=80';">
                 <div class="offer-showcase-overlay">
                     <span class="offer-showcase-tag"><i class="fa-solid fa-fire"></i> ${escapeHtml(offer.tag || 'OFERTA DESTACADA')}</span>
                     <h3 class="offer-showcase-title">${escapeHtml(offer.title)}</h3>
-                    <div class="offer-showcase-platform"><i class="fa-brands fa-playstation"></i> ${escapeHtml(offer.platform)}</div>
+                    <div class="offer-showcase-platform"><i class="fa-brands fa-playstation"></i> ${escapeHtml(effectivePlatform)}</div>
                     <div class="offer-showcase-pricing">
-                        ${offer.oldPrice ? `<span class="offer-showcase-old-price">${formatPrice(offer.oldPrice)}</span>` : ''}
-                        <span class="offer-showcase-new-price">${formatPrice(offer.newPrice)}</span>
-                        ${offer.discount ? `<span class="offer-showcase-discount">${escapeHtml(offer.discount)}</span>` : ''}
+                        ${effectiveOldPrice && effectiveOldPrice > effectiveNewPrice ? `<span class="offer-showcase-old-price">${formatPrice(effectiveOldPrice)}</span>` : ''}
+                        <span class="offer-showcase-new-price">${formatPrice(effectiveNewPrice)}</span>
+                        ${effectiveDiscount ? `<span class="offer-showcase-discount">${escapeHtml(effectiveDiscount)}</span>` : ''}
                     </div>
                     <button type="button" class="offer-showcase-cta" onclick="openCheckoutForOffer(${index})" title="Comprar oferta de ${escapeHtml(offer.title)}">
-                        <i class="fa-brands fa-whatsapp"></i> Comprar Oferta por WhatsApp
+                        <i class="fa-solid fa-cart-shopping"></i> Comprar Oferta
                     </button>
                 </div>
             </div>

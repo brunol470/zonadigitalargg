@@ -559,6 +559,14 @@ async function loadGames() {
                         renderAdminPsPlus();
                     }
                 } catch(e) {}
+            } else if (g.title === '__deleted_games__' || g.category === 'deleted_config') {
+                try {
+                    const deleted = JSON.parse(g.description);
+                    if (Array.isArray(deleted)) {
+                        window.DELETED_GAMES_LIST = deleted;
+                        try { localStorage.setItem('zd_deleted_games', g.description); } catch(e) {}
+                    }
+                } catch(e) {}
             } else if (g.title === '__offers_showcase__' || g.category === 'offers_config') {
                 try {
                     const customOffers = JSON.parse(g.description);
@@ -584,11 +592,15 @@ async function loadGames() {
             };
         });
 
-        // Fusionar con los juegos locales de games.js para que aparezcan de inmediato en el panel
+        // Fusionar con los juegos locales de games.js (excluyendo juegos eliminados)
         if (typeof GAMES_DATA !== 'undefined' && Array.isArray(GAMES_DATA)) {
             const dbTitles = new Set(dbGames.map(g => (g.title || '').toLowerCase().trim()));
+            const deletedSet = new Set((window.DELETED_GAMES_LIST || []).map(t => String(t).toLowerCase().trim()));
             const missingLocal = GAMES_DATA
-                .filter(g => !dbTitles.has((g.title || '').toLowerCase().trim()))
+                .filter(g => {
+                    const titleNorm = (g.title || '').toLowerCase().trim();
+                    return !dbTitles.has(titleNorm) && !deletedSet.has(titleNorm);
+                })
                 .map(g => {
                     const override = getUpdatedPriceForGame(g);
                     return {
@@ -614,7 +626,7 @@ async function loadGames() {
                     };
                 });
 
-            allGames = [...dbGames, ...missingLocal];
+            allGames = [...dbGames.filter(g => !deletedSet.has((g.title || '').toLowerCase().trim())), ...missingLocal];
         } else {
             allGames = dbGames;
         }
@@ -642,12 +654,13 @@ async function syncMissingGamesToSupabase(sb, rawData) {
         if (!session || !session.user) return;
 
         const existingTitles = new Set((rawData || []).map(g => (g.title || '').trim().toLowerCase()));
+        const deletedSet = new Set((window.DELETED_GAMES_LIST || []).map(t => String(t).toLowerCase().trim()));
         const toInsert = [];
 
         if (typeof GAMES_DATA !== 'undefined' && Array.isArray(GAMES_DATA)) {
             for (const g of GAMES_DATA) {
                 const normTitle = (g.title || '').trim().toLowerCase();
-                if (!existingTitles.has(normTitle)) {
+                if (!existingTitles.has(normTitle) && !deletedSet.has(normTitle)) {
                     const override = getUpdatedPriceForGame(g);
                     toInsert.push({
                         title: g.title,
@@ -1182,6 +1195,22 @@ async function saveGame(e) {
         if (resultError) {
             showToast("Error al guardar: " + resultError.message, "error");
         } else {
+            // Si el título del juego estaba en la lista de eliminados, se desbloquea automáticamente
+            const savedTitleNorm = (gamePayload.title || '').toLowerCase().trim();
+            if (window.DELETED_GAMES_LIST && window.DELETED_GAMES_LIST.length > 0) {
+                const hadDeleted = window.DELETED_GAMES_LIST.some(t => t.toLowerCase().trim() === savedTitleNorm);
+                if (hadDeleted) {
+                    window.DELETED_GAMES_LIST = window.DELETED_GAMES_LIST.filter(t => t.toLowerCase().trim() !== savedTitleNorm);
+                    try { localStorage.setItem('zd_deleted_games', JSON.stringify(window.DELETED_GAMES_LIST)); } catch(e) {}
+                    try {
+                        await sb.from('games').update({
+                            description: JSON.stringify(window.DELETED_GAMES_LIST),
+                            updated_at: new Date().toISOString()
+                        }).eq('title', '__deleted_games__');
+                    } catch(e) {}
+                }
+            }
+
             showToast(gameId ? "¡Juego actualizado con éxito!" : "¡Juego agregado al catálogo con éxito!", "success");
             closeGameModal();
             loadGames();
@@ -1220,18 +1249,69 @@ async function executeDeleteGame() {
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Eliminando...`;
 
     try {
-        const { error } = await sb
-            .from('games')
-            .delete()
-            .eq('id', currentGameToDelete);
+        const targetGame = allGames.find(g => String(g.id) === String(currentGameToDelete));
+        const targetTitle = targetGame ? targetGame.title : null;
 
-        if (error) {
-            showToast("No se pudo eliminar el juego: " + error.message, "error");
-        } else {
-            showToast("Juego eliminado del catálogo", "success");
-            closeDeleteModal();
-            loadGames();
+        // 1. Borrar de Supabase por ID
+        await sb.from('games').delete().eq('id', currentGameToDelete);
+
+        // 2. Si tiene título, asegurar borrado y persistir en la lista de eliminados
+        if (targetTitle) {
+            await sb.from('games').delete().ilike('title', targetTitle);
+
+            if (!window.DELETED_GAMES_LIST) window.DELETED_GAMES_LIST = [];
+            const normTitle = targetTitle.toLowerCase().trim();
+            if (!window.DELETED_GAMES_LIST.some(t => t.toLowerCase().trim() === normTitle)) {
+                window.DELETED_GAMES_LIST.push(targetTitle);
+                try { localStorage.setItem('zd_deleted_games', JSON.stringify(window.DELETED_GAMES_LIST)); } catch(e) {}
+            }
+
+            // Persistir __deleted_games__ en Supabase
+            try {
+                const { data: existingDeleted } = await sb
+                    .from('games')
+                    .select('id')
+                    .eq('title', '__deleted_games__')
+                    .maybeSingle();
+
+                const payload = {
+                    title: '__deleted_games__',
+                    category: 'deleted_config',
+                    description: JSON.stringify(window.DELETED_GAMES_LIST),
+                    image: 'zd-logo-full.png',
+                    platforms: ['PS4', 'PS5'],
+                    price_primary: 0,
+                    availability: 'disponible',
+                    updated_at: new Date().toISOString()
+                };
+
+                if (existingDeleted && existingDeleted.id) {
+                    await sb.from('games').update(payload).eq('id', existingDeleted.id);
+                } else {
+                    await sb.from('games').insert([payload]);
+                }
+            } catch(e) {
+                console.warn("Aviso al guardar lista de eliminados en Supabase:", e);
+            }
+
+            // Quitar de OFERTAS_SHOWCASE_DATA si estaba en el carrusel
+            if (typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA)) {
+                OFERTAS_SHOWCASE_DATA = OFERTAS_SHOWCASE_DATA.filter(c => 
+                    String(c.id) !== String(currentGameToDelete) && (!c.title || c.title.toLowerCase().trim() !== normTitle)
+                );
+                await saveAllOffersChanges();
+            }
         }
+
+        // 3. Quitar inmediatamente de allGames en memoria
+        allGames = allGames.filter(g => String(g.id) !== String(currentGameToDelete));
+
+        showToast("Juego eliminado del catálogo con éxito", "success");
+        closeDeleteModal();
+        updateMetrics();
+        filterGamesList();
+        populateOfferGameSelect();
+        renderAdminOffersView();
     } catch (err) {
         showToast("Error al eliminar juego: " + err.message, "error");
     } finally {
@@ -1718,7 +1798,8 @@ async function addGameToOffers() {
                 id: game.id,
                 title: game.title,
                 image: resolveGameCover(game.image, game.title),
-                price: game.price_primary,
+                price: game.price_primary || 0,
+                newPrice: game.price_primary || 0,
                 oldPrice: game.old_price_primary || (game.price_primary ? Math.round(game.price_primary * 1.3) : 0),
                 discount: game.discount || '-25%',
                 platforms: game.platforms || ["PS4", "PS5"],
@@ -1797,6 +1878,7 @@ async function toggleCarouselOffer(gameId) {
             title: game.title,
             image: resolveGameCover(game.image, game.title),
             price: game.price_primary || 0,
+            newPrice: game.price_primary || 0,
             oldPrice: game.old_price_primary || (game.price_primary ? Math.round(game.price_primary * 1.3) : 0),
             discount: game.discount || '-25%',
             platforms: game.platforms || ["PS4", "PS5"],

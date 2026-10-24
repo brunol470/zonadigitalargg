@@ -1259,6 +1259,50 @@ function openCheckoutForPs3(gameId) {
 }
 
 /**
+ * Abre el checkout para una novedad del carousel por su índice
+ */
+function openCheckoutForNovedad(novedadIndex) {
+    if (typeof NOVEDADES_DATA === 'undefined') return;
+    const item = NOVEDADES_DATA[novedadIndex];
+    if (!item) return;
+
+    let game = null;
+    const gamesList = typeof GAMES_DATA !== 'undefined' ? GAMES_DATA : [];
+
+    // 1. Buscar primero por coincidencia exacta o flexible de título
+    if (item.title) {
+        const normTitle = item.title.toLowerCase().trim();
+        game = gamesList.find(g => (g.title || '').toLowerCase().trim() === normTitle);
+        if (!game) {
+            game = gamesList.find(g => {
+                const gt = (g.title || '').toLowerCase().trim();
+                return gt.includes(normTitle) || normTitle.includes(gt);
+            });
+        }
+    }
+
+    // 2. Fallback a gameId si no se encontró por título
+    if (!game && item.gameId) {
+        game = gamesList.find(g => g.id === item.gameId);
+    }
+
+    if (game) {
+        let preferredPlat = 'PS5';
+        if (item.platforms && item.platforms.includes('PS5')) {
+            preferredPlat = 'PS5';
+        } else if (item.platforms && item.platforms.includes('PS4')) {
+            preferredPlat = 'PS4';
+        } else if (game.platforms && game.platforms.length > 0) {
+            preferredPlat = game.platforms[0];
+        }
+        openCheckoutModal(game.id, 'catalog', 'primary', preferredPlat);
+    } else {
+        const buyMsg = encodeURIComponent(`Hola, quiero comprar "${item.title}" para PlayStation 🎮`);
+        window.open(`https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${buyMsg}`, '_blank');
+    }
+}
+
+/**
  * Abre el checkout para una oferta destacada del carousel
  */
 function openCheckoutForOffer(offerIndex) {
@@ -1266,14 +1310,42 @@ function openCheckoutForOffer(offerIndex) {
     const offer = OFERTAS_SHOWCASE_DATA[offerIndex];
     if (!offer) return;
 
-    if (offer.id) {
-        const game = GAMES_DATA.find(g => g.id === offer.id);
-        if (game) {
-            openCheckoutModal(game.id, 'catalog', 'primary');
-            return;
+    let game = null;
+    const gamesList = typeof GAMES_DATA !== 'undefined' ? GAMES_DATA : [];
+
+    // 1. Buscar primero por coincidencia exacta de título
+    if (offer.title) {
+        const normOffer = offer.title.toLowerCase().trim();
+        game = gamesList.find(g => (g.title || '').toLowerCase().trim() === normOffer);
+        if (!game) {
+            game = gamesList.find(g => {
+                const gt = (g.title || '').toLowerCase().trim();
+                return gt.includes(normOffer) || normOffer.includes(gt);
+            });
         }
     }
-    openCheckoutModal(1, 'catalog', 'primary');
+
+    // 2. Fallback a ID numérico si no coincidió por título
+    if (!game && offer.id) {
+        game = gamesList.find(g => g.id === offer.id);
+    }
+
+    if (game) {
+        let preferredPlat = 'PS5';
+        if (offer.platform && offer.platform.includes('PS4') && !offer.platform.includes('PS5')) {
+            preferredPlat = 'PS4';
+        } else if (game.platforms && game.platforms.includes('PS5')) {
+            preferredPlat = 'PS5';
+        } else if (game.platforms && game.platforms.includes('PS4')) {
+            preferredPlat = 'PS4';
+        }
+        openCheckoutModal(game.id, 'catalog', 'primary', preferredPlat);
+        return;
+    }
+
+    // Fallback: abrir por WhatsApp si el juego no figura en el catálogo
+    const waMsg = encodeURIComponent(`Hola, quiero aprovechar la OFERTA de "${offer.title}" (${offer.platform || 'PlayStation'}) por ${formatPrice(offer.newPrice)} 🎮`);
+    window.open(`https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${waMsg}`, '_blank');
 }
 
 /**
@@ -2228,21 +2300,11 @@ function renderNovedades() {
         const isAvailable = item.isAvailable === true || (item.tag && item.tag.toUpperCase().includes('DISPONIBLE'));
         let ctaButtonHtml = '';
         if (isAvailable) {
-            if (item.gameId) {
-                ctaButtonHtml = `
-                    <button type="button" class="novedades-cta-btn novedades-buy-btn" onclick="openCheckoutModal(${item.gameId})" title="Comprar ${escapeHtml(item.title)} ahora">
-                        <i class="fa-solid fa-bolt"></i> Comprar Ahora
-                    </button>
-                `;
-            } else {
-                const buyMsg = encodeURIComponent(`Hola, quiero comprar "${item.title}" para PlayStation 🎮`);
-                const buyWaUrl = `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${buyMsg}`;
-                ctaButtonHtml = `
-                    <a href="${buyWaUrl}" target="_blank" rel="noopener noreferrer" class="novedades-cta-btn novedades-buy-btn" title="Comprar ${escapeHtml(item.title)} ahora">
-                        <i class="fa-solid fa-cart-shopping"></i> Comprar Ahora
-                    </a>
-                `;
-            }
+            ctaButtonHtml = `
+                <button type="button" class="novedades-cta-btn novedades-buy-btn" onclick="openCheckoutForNovedad(${index})" title="Comprar ${escapeHtml(item.title)} ahora">
+                    <i class="fa-solid fa-bolt"></i> Comprar Ahora
+                </button>
+            `;
         } else {
             const waMsg = encodeURIComponent(`Hola, quiero consultar información o reservar "${item.title}" para PlayStation 🎮`);
             const waUrl = `https://wa.me/${STORE_CONFIG.whatsappNumber}?text=${waMsg}`;

@@ -6,6 +6,31 @@
     <title>Zona Digitalarg | Juegos Digitales PS4 y PS5 - Cuentas Originales y Garantía</title>
     <meta name="description" content="Catálogo online de Zona Digitalarg. Encontrá los mejores juegos digitales para PlayStation 4 y PlayStation 5. Cuentas primarias y secundarias con entrega inmediata y garantía.">
     
+    <!-- Favicon & Iconos Oficiales -->
+    <link rel="icon" type="image/png" href="zd-logo-icon.png">
+    <link rel="apple-touch-icon" href="zd-logo-icon.png">
+
+    <!-- Open Graph (Facebook, Instagram, WhatsApp, Messenger) -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://zonadigitalarg.com.ar/">
+    <meta property="og:title" content="Zona Digitalarg | Juegos Digitales PS4 y PS5">
+    <meta property="og:description" content="🎮 Los mejores juegos digitales para PS4 y PS5. Cuentas primarias y secundarias originales con entrega inmediata por WhatsApp y garantía total. ¡Mirá nuestro catálogo y ofertas!">
+    <meta property="og:image" content="https://zonadigitalarg.com.ar/og-banner.jpg">
+    <meta property="og:image:secure_url" content="https://zonadigitalarg.com.ar/og-banner.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Zona Digitalarg - Juegos Digitales PS4 y PS5">
+    <meta property="og:site_name" content="Zona Digitalarg">
+    <meta property="og:locale" content="es_AR">
+
+    <!-- Twitter / X Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://zonadigitalarg.com.ar/">
+    <meta name="twitter:title" content="Zona Digitalarg | Juegos Digitales PS4 y PS5">
+    <meta name="twitter:description" content="Los mejores juegos digitales para PlayStation 4 y PlayStation 5 al mejor precio en pesos argentinos con garantía oficial.">
+    <meta name="twitter:image" content="https://zonadigitalarg.com.ar/og-banner.jpg">
+    
     <!-- Google Fonts: Outfit y Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -312,6 +337,14 @@
             <!-- Grilla Principal del Catálogo de Juegos -->
             <div class="games-grid" id="gamesGrid">
                 <!-- Se cargará automáticamente con JavaScript -->
+            </div>
+
+            <!-- Botón Ver Más Juegos (Zona Digital) -->
+            <div id="loadMoreContainer" class="load-more-container" style="display: none;">
+                <button id="loadMoreBtn" class="btn-load-more" onclick="loadMoreGames()">
+                    <i class="fa-solid fa-chevron-down"></i> Ver más juegos
+                </button>
+                <span id="loadMoreCounter" class="load-more-counter"></span>
             </div>
         </div>
     </section>

@@ -635,11 +635,19 @@ function renderOffers() {
 }
 
 
+const GAMES_PER_PAGE = 40;
+let currentDisplayedGamesCount = GAMES_PER_PAGE;
+let currentFilteredGamesList = [];
+
 /**
  * 4. FILTRADO, BÚSQUEDA Y ORDENAMIENTO DEL CATÁLOGO
  */
-function applyFiltersAndRender() {
+function applyFiltersAndRender(resetPagination = true) {
     if (!gamesGrid) return;
+
+    if (resetPagination) {
+        currentDisplayedGamesCount = GAMES_PER_PAGE;
+    }
 
     let filtered = [...GAMES_DATA];
 
@@ -684,6 +692,10 @@ function applyFiltersAndRender() {
             break;
     }
 
+    currentFilteredGamesList = filtered;
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
+    const loadMoreCounter = document.getElementById('loadMoreCounter');
+
     // Renderizar resultados
     if (filtered.length === 0) {
         gamesGrid.innerHTML = `
@@ -696,10 +708,60 @@ function applyFiltersAndRender() {
                 </button>
             </div>
         `;
+        if (loadMoreContainer) loadMoreContainer.style.display = 'none';
     } else {
-        gamesGrid.innerHTML = filtered.map(game => createGameCardHtml(game)).join('');
+        const visibleSlice = filtered.slice(0, currentDisplayedGamesCount);
+        gamesGrid.innerHTML = visibleSlice.map(game => createGameCardHtml(game)).join('');
+
+        if (loadMoreContainer) {
+            if (filtered.length > currentDisplayedGamesCount) {
+                loadMoreContainer.style.display = 'flex';
+                if (loadMoreCounter) {
+                    loadMoreCounter.textContent = `Mostrando ${visibleSlice.length} de ${filtered.length} juegos`;
+                }
+            } else {
+                loadMoreContainer.style.display = 'none';
+            }
+        }
     }
 }
+
+/**
+ * Carga el siguiente lote de 40 juegos con animación suave
+ */
+function loadMoreGames() {
+    if (!gamesGrid || !currentFilteredGamesList) return;
+    if (currentDisplayedGamesCount >= currentFilteredGamesList.length) return;
+
+    const prevCount = currentDisplayedGamesCount;
+    currentDisplayedGamesCount += GAMES_PER_PAGE;
+
+    const nextBatch = currentFilteredGamesList.slice(prevCount, currentDisplayedGamesCount);
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = nextBatch.map(game => createGameCardHtml(game)).join('');
+
+    while (tempDiv.firstChild) {
+        const node = tempDiv.firstChild;
+        if (node.nodeType === 1) {
+            node.classList.add('fade-in-card');
+        }
+        gamesGrid.appendChild(node);
+    }
+
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
+    const loadMoreCounter = document.getElementById('loadMoreCounter');
+
+    if (loadMoreContainer) {
+        if (currentDisplayedGamesCount >= currentFilteredGamesList.length) {
+            loadMoreContainer.style.display = 'none';
+        } else if (loadMoreCounter) {
+            const currentTotal = Math.min(currentDisplayedGamesCount, currentFilteredGamesList.length);
+            loadMoreCounter.textContent = `Mostrando ${currentTotal} de ${currentFilteredGamesList.length} juegos`;
+        }
+    }
+}
+window.loadMoreGames = loadMoreGames;
 
 
 /**

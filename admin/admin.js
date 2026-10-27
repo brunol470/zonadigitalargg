@@ -702,11 +702,18 @@ async function syncMissingGamesToSupabase(sb, rawData) {
 
         if (toInsert.length > 0) {
             console.log(`[ZONA DIGITAL] Guardando automáticamente ${toInsert.length} juegos nuevos en Supabase...`);
-            const { error } = await sb.from('games').insert(toInsert);
-            if (!error) {
+            const chunkSize = 50;
+            let hasError = false;
+            for (let i = 0; i < toInsert.length; i += chunkSize) {
+                const chunk = toInsert.slice(i, i + chunkSize);
+                const { error } = await sb.from('games').insert(chunk);
+                if (error) {
+                    hasError = true;
+                    console.warn(`[ZONA DIGITAL] Aviso al insertar lote ${Math.floor(i / chunkSize) + 1}:`, error.message);
+                }
+            }
+            if (!hasError) {
                 console.log(`[ZONA DIGITAL] ¡${toInsert.length} juegos nuevos sincronizados con Supabase!`);
-            } else {
-                console.warn("[ZONA DIGITAL] Aviso al insertar juegos nuevos:", error.message);
             }
         }
     } catch (e) {

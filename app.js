@@ -38,6 +38,13 @@ const clearSearchBtn = document.getElementById('clearSearchBtn');
 const sortSelect = document.getElementById('sortSelect');
 const platformFilterBtns = document.querySelectorAll('.filter-btn');
 
+// Buscador al inicio y Botón Volver al inicio
+const heroSearchInput = document.getElementById('heroSearchInput');
+const heroClearSearchBtn = document.getElementById('heroClearSearchBtn');
+const heroSearchDropdown = document.getElementById('heroSearchDropdown');
+const heroSearchResultsList = document.getElementById('heroSearchResultsList');
+const btnScrollTop = document.getElementById('btnScrollTop');
+
 // Modales
 const gameModal = document.getElementById('gameModal');
 const closeGameModalBtn = document.getElementById('closeGameModalBtn');
@@ -65,6 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
     applyFiltersAndRender();
     renderPs3Games();
     renderPsPlusSection();
+    initHeroSearch();
+    initScrollTopButton();
     initEventListeners();
     initFaqAccordion();
 
@@ -1987,23 +1996,33 @@ function scrollCheckoutRelated(direction) {
  * 8. CONFIGURACIÓN DE ESCUCHADORES DE EVENTOS
  */
 function initEventListeners() {
-    // Buscador en tiempo real
+    // Buscador en tiempo real (Catálogo)
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             currentSearchQuery = e.target.value;
             if (clearSearchBtn) {
                 clearSearchBtn.style.display = currentSearchQuery.length > 0 ? 'block' : 'none';
             }
+            // Sincronizar buscador del inicio
+            if (heroSearchInput && heroSearchInput.value !== currentSearchQuery) {
+                heroSearchInput.value = currentSearchQuery;
+            }
+            if (heroClearSearchBtn) {
+                heroClearSearchBtn.style.display = currentSearchQuery.length > 0 ? 'flex' : 'none';
+            }
             applyFiltersAndRender();
         });
     }
 
-    // Botón para limpiar búsqueda
+    // Botón para limpiar búsqueda (Catálogo)
     if (clearSearchBtn) {
         clearSearchBtn.addEventListener('click', () => {
             searchInput.value = '';
+            if (heroSearchInput) heroSearchInput.value = '';
             currentSearchQuery = '';
             clearSearchBtn.style.display = 'none';
+            if (heroClearSearchBtn) heroClearSearchBtn.style.display = 'none';
+            if (heroSearchDropdown) heroSearchDropdown.style.display = 'none';
             searchInput.focus();
             applyFiltersAndRender();
         });
@@ -2249,8 +2268,11 @@ function filterByOffer() {
  */
 function resetSearchAndFilters() {
     if (searchInput) searchInput.value = '';
+    if (heroSearchInput) heroSearchInput.value = '';
     currentSearchQuery = '';
     if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+    if (heroClearSearchBtn) heroClearSearchBtn.style.display = 'none';
+    if (heroSearchDropdown) heroSearchDropdown.style.display = 'none';
 
     currentPlatformFilter = 'all';
     currentCategoryFilter = 'all';
@@ -2264,6 +2286,194 @@ function resetSearchAndFilters() {
     });
 
     applyFiltersAndRender();
+}
+
+
+/**
+ * ==========================================================================
+ * 12.1. BUSCADOR PRINCIPAL AL INICIO (HERO SEARCH)
+ * ==========================================================================
+ */
+function initHeroSearch() {
+    if (!heroSearchInput) return;
+
+    heroSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value;
+        currentSearchQuery = query;
+
+        // Sincronizar input del catálogo
+        if (searchInput && searchInput.value !== query) {
+            searchInput.value = query;
+        }
+
+        // Visibilidad de los botones de limpiar
+        if (heroClearSearchBtn) {
+            heroClearSearchBtn.style.display = query.length > 0 ? 'flex' : 'none';
+        }
+        if (clearSearchBtn) {
+            clearSearchBtn.style.display = query.length > 0 ? 'block' : 'none';
+        }
+
+        // Renderizar sugerencias rápidas en el dropdown del hero
+        renderHeroSearchDropdown(query);
+
+        // Filtrar catálogo en vivo
+        applyFiltersAndRender(true);
+    });
+
+    if (heroClearSearchBtn) {
+        heroClearSearchBtn.addEventListener('click', () => {
+            heroSearchInput.value = '';
+            if (searchInput) searchInput.value = '';
+            currentSearchQuery = '';
+            heroClearSearchBtn.style.display = 'none';
+            if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+            if (heroSearchDropdown) heroSearchDropdown.style.display = 'none';
+            heroSearchInput.focus();
+            applyFiltersAndRender(true);
+        });
+    }
+
+    // Cerrar dropdown al hacer clic fuera del buscador del hero
+    document.addEventListener('click', (e) => {
+        const wrapper = document.getElementById('heroSearchWrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            if (heroSearchDropdown) heroSearchDropdown.style.display = 'none';
+        }
+    });
+
+    // Reabrir dropdown si el usuario vuelve a hacer foco en el buscador con texto
+    heroSearchInput.addEventListener('focus', () => {
+        if (heroSearchInput.value.trim().length >= 1) {
+            renderHeroSearchDropdown(heroSearchInput.value);
+        }
+    });
+}
+
+/**
+ * Renderiza los resultados en el dropdown rápido debajo del buscador del hero
+ */
+function renderHeroSearchDropdown(query) {
+    if (!heroSearchDropdown || !heroSearchResultsList) return;
+
+    const trimmed = (query || '').toLowerCase().trim();
+    if (trimmed.length < 1) {
+        heroSearchDropdown.style.display = 'none';
+        return;
+    }
+
+    const gamesList = typeof GAMES_DATA !== 'undefined' ? GAMES_DATA : [];
+    const matches = gamesList.filter(g => 
+        (g.title || '').toLowerCase().includes(trimmed) ||
+        (g.genre || '').toLowerCase().includes(trimmed) ||
+        (g.category || '').toLowerCase().includes(trimmed)
+    ).slice(0, 5); // Top 5 resultados más relevantes
+
+    if (matches.length === 0) {
+        heroSearchResultsList.innerHTML = `
+            <div class="hero-search-empty-state">
+                <i class="fa-solid fa-gamepad"></i>
+                <p>No encontramos juegos con "<strong>${escapeHtml(query)}</strong>"</p>
+                <span style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-top: 4px;">Probá con otro título o revisá el catálogo completo</span>
+            </div>
+        `;
+    } else {
+        heroSearchResultsList.innerHTML = matches.map(game => {
+            const cover = resolveGameCover(game.image, game.title);
+            const minPrice = game.priceSecondary || game.pricePrimary;
+            const priceStr = formatPrice(minPrice);
+            const platformsHtml = (game.platforms || ['PS4', 'PS5']).map(p => 
+                `<span class="${p === 'PS5' ? 'badge-ps5' : 'badge-ps4'}" style="font-size: 0.65rem; padding: 2px 6px;">${p}</span>`
+            ).join('');
+
+            return `
+                <div class="hero-search-item" onclick="selectHeroSearchResult(${game.id})" role="button" tabindex="0">
+                    <img src="${cover}" alt="${escapeHtml(game.title)}" class="hero-search-item-img" onerror="this.src='zd-logo-icon.png'">
+                    <div class="hero-search-item-info">
+                        <div class="hero-search-item-title">${escapeHtml(game.title)}</div>
+                        <div class="hero-search-item-meta">
+                            <div style="display: flex; gap: 4px;">${platformsHtml}</div>
+                            <span style="color: var(--text-dim); font-size: 0.74rem;">• ${escapeHtml(game.category || 'PlayStation')}</span>
+                        </div>
+                    </div>
+                    <div class="hero-search-item-price">
+                        <span class="hero-search-item-price-lbl">Desde</span>
+                        <span class="hero-search-item-price-val">${priceStr}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    heroSearchDropdown.style.display = 'block';
+}
+
+function selectHeroSearchResult(gameId) {
+    if (heroSearchDropdown) heroSearchDropdown.style.display = 'none';
+    openGameModal(gameId);
+}
+window.selectHeroSearchResult = selectHeroSearchResult;
+
+function submitHeroSearch() {
+    if (heroSearchDropdown) heroSearchDropdown.style.display = 'none';
+    const query = heroSearchInput ? heroSearchInput.value.trim() : '';
+    if (searchInput) searchInput.value = query;
+    currentSearchQuery = query;
+
+    if (clearSearchBtn) clearSearchBtn.style.display = query.length > 0 ? 'block' : 'none';
+    if (heroClearSearchBtn) heroClearSearchBtn.style.display = query.length > 0 ? 'flex' : 'none';
+
+    applyFiltersAndRender(true);
+
+    const cat = document.getElementById('catalogo');
+    if (cat) {
+        cat.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+window.submitHeroSearch = submitHeroSearch;
+
+function quickHeroSearch(term) {
+    if (heroSearchDropdown) heroSearchDropdown.style.display = 'none';
+    if (heroSearchInput) heroSearchInput.value = term;
+    if (searchInput) searchInput.value = term;
+    currentSearchQuery = term;
+
+    if (heroClearSearchBtn) heroClearSearchBtn.style.display = 'flex';
+    if (clearSearchBtn) clearSearchBtn.style.display = 'block';
+
+    applyFiltersAndRender(true);
+
+    const cat = document.getElementById('catalogo');
+    if (cat) {
+        cat.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+window.quickHeroSearch = quickHeroSearch;
+
+
+/**
+ * ==========================================================================
+ * 12.2. BOTÓN FLOTANTE "VOLVER AL INICIO"
+ * ==========================================================================
+ */
+function initScrollTopButton() {
+    const btn = document.getElementById('btnScrollTop');
+    if (!btn) return;
+
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 350) {
+            btn.classList.add('visible');
+        } else {
+            btn.classList.remove('visible');
+        }
+    }, { passive: true });
+
+    btn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
 }
 
 

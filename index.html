@@ -40,7 +40,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <!-- Hoja de Estilos -->
-    <link rel="stylesheet" href="style.css?v=3.0">
+    <link rel="stylesheet" href="style.css?v=3.1">
 </head>
 <body>
 
@@ -155,6 +155,54 @@
             <p class="hero-description">
                 En <strong>Zona Digitalarg</strong> encontrás el catálogo más completo de juegos digitales PlayStation en cuentas primarias y secundarias. Comprá fácil, rápido y con garantía asegurada.
             </p>
+
+            <!-- Buscador Principal al Inicio -->
+            <div class="hero-search-wrapper" id="heroSearchWrapper">
+                <form class="hero-search-form" id="heroSearchForm" onsubmit="event.preventDefault(); submitHeroSearch();">
+                    <div class="hero-search-box">
+                        <i class="fa-solid fa-magnifying-glass hero-search-icon"></i>
+                        <input 
+                            type="text" 
+                            id="heroSearchInput" 
+                            class="hero-search-input" 
+                            placeholder="Buscar juego por nombre (ej: GTA, FIFA, Call of Duty, Mortal Kombat...)" 
+                            autocomplete="off"
+                            aria-label="Buscar juegos digitales"
+                        >
+                        <button type="button" class="hero-clear-search-btn" id="heroClearSearchBtn" title="Limpiar búsqueda" style="display: none;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <button type="submit" class="hero-search-submit-btn" id="heroSearchSubmitBtn">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>Buscar</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Desplegable de Resultados Rápidos (Live Dropdown) -->
+                <div class="hero-search-dropdown" id="heroSearchDropdown" style="display: none;">
+                    <div class="hero-search-results-list" id="heroSearchResultsList">
+                        <!-- Se llena dinámicamente con JS -->
+                    </div>
+                    <div class="hero-search-dropdown-footer">
+                        <button type="button" class="hero-search-all-btn" onclick="submitHeroSearch()">
+                            <span>Ver todos los resultados en el catálogo</span>
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chips de Búsqueda Rápida Populares -->
+                <div class="hero-search-tags">
+                    <span class="hero-search-tags-label"><i class="fa-solid fa-fire"></i> Más buscados:</span>
+                    <button type="button" class="hero-tag-chip" onclick="quickHeroSearch('GTA')">GTA</button>
+                    <button type="button" class="hero-tag-chip" onclick="quickHeroSearch('FC 25')">FC 25</button>
+                    <button type="button" class="hero-tag-chip" onclick="quickHeroSearch('Call of Duty')">Call of Duty</button>
+                    <button type="button" class="hero-tag-chip" onclick="quickHeroSearch('Mortal Kombat')">Mortal Kombat</button>
+                    <button type="button" class="hero-tag-chip" onclick="quickHeroSearch('Spider-Man')">Spider-Man</button>
+                    <button type="button" class="hero-tag-chip" onclick="quickHeroSearch('God of War')">God of War</button>
+                </div>
+            </div>
 
             <div class="hero-buttons">
                 <a href="#catalogo" class="btn-primary">
@@ -702,6 +750,14 @@
         <span>¿Consultas? ¡Escribinos!</span>
     </a>
 
+    <!-- ====================================================================
+         10.5. BOTÓN FLOTANTE "VOLVER AL INICIO"
+         ==================================================================== -->
+    <button type="button" class="btn-scroll-top" id="btnScrollTop" aria-label="Volver al inicio" title="Volver al inicio">
+        <i class="fa-solid fa-arrow-up"></i>
+        <span>Volver al inicio</span>
+    </button>
+
 
     <!-- ====================================================================
          11. MODAL DE DETALLES DEL JUEGO
@@ -972,6 +1028,6 @@
     <!-- Catálogo base local -->
     <script src="games.js?v=3.0"></script>
     <!-- Lógica de la tienda y sincronización en vivo -->
-    <script src="app.js?v=8.0"></script>
+    <script src="app.js?v=8.1"></script>
 </body>
 </html>

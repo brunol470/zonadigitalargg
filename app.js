@@ -21,11 +21,14 @@ let currentSortOption = 'featured';
 let selectedGame = null;
 let selectedAccountType = 'primary'; // 'primary' o 'secondary'
 let selectedModalPlatform = null; // plataforma activa en el modal de detalles
+let selectedModalEdition = 'standard'; // 'standard' o 'ultimate' (para GTA 6 y juegos con ediciones)
+let cardSelectedEditions = {}; // estado de edición elegida en cada tarjeta del catálogo
 
 // Estado global del Checkout / Pago por Transferencia
 let currentCheckoutGame = null;
 let currentCheckoutPlatform = 'PS5';
 let currentCheckoutAccountType = 'primary';
+let currentCheckoutEdition = 'standard';
 let currentCheckoutPrice = 0;
 let currentCheckoutOrderNumber = '';
 let currentCheckoutType = 'catalog'; // 'catalog', 'ps3', o 'offer'
@@ -89,13 +92,63 @@ window.addEventListener('focus', () => {
 
 let isSyncingWithSupabase = false;
 
-function resolveGameCover(image, title) {
+function normalizeCatalogKey(title) {
+    return String(title || '')
+        .replace(/\uFE0F/g, '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+}
+
+function isEspanolLatinoTitle(title) {
+    const t = String(title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return t.includes('espanol latino');
+}
+
+function resolveGameTitle(title, id) {
+    const raw = String(title || '').replace(/\uFE0F/g, '').trim();
+    if (typeof window !== 'undefined' && window.MASTER_TITLE_OVERRIDES) {
+        const nk = normalizeCatalogKey(raw);
+        if (nk && window.MASTER_TITLE_OVERRIDES[nk]) {
+            return window.MASTER_TITLE_OVERRIDES[nk];
+        }
+        if (id !== undefined && id !== null && window.MASTER_TITLE_OVERRIDES['id:' + id]) {
+            return window.MASTER_TITLE_OVERRIDES['id:' + id];
+        }
+    }
+    return raw;
+}
+
+function resolveGameCover(image, title, id) {
     const raw = (image || '').trim();
     const t = (title || '').toLowerCase().trim();
+
+    // Respetar portadas subidas manualmente al storage de Supabase por el admin
+    if (raw.includes('supabase.co/storage/')) {
+        return raw;
+    }
+
+    // Priorizar el mapa maestro de portadas oficiales verificadas (380 juegos)
+    if (typeof window !== 'undefined' && window.MASTER_COVER_OVERRIDES) {
+        const nk = normalizeCatalogKey(title);
+        if (nk && window.MASTER_COVER_OVERRIDES[nk]) {
+            return window.MASTER_COVER_OVERRIDES[nk];
+        }
+        if (id !== undefined && id !== null && window.MASTER_COVER_OVERRIDES['id:' + id]) {
+            return window.MASTER_COVER_OVERRIDES['id:' + id];
+        }
+    }
 
     // Corregir errores conocidos de extensión
     if (raw.toLowerCase() === 'bttle1.wedp' || raw.includes('bttle1.wedp')) {
         return 'bttle1.webp';
+    }
+
+    if (t.includes('grand theft auto vi') || t.includes('gta 6') || t.includes('gta vi')) {
+        if (!raw || raw.includes('unsplash.com') || raw === 'gta6.webp') {
+            return 'gta6-rockstar-official.jpg';
+        }
     }
 
     // Si tiene un enlace genérico de Unsplash o está vacío, mapear a su portada local
@@ -167,6 +220,36 @@ function resolveGameCover(image, title) {
     return raw;
 }
 
+function hasGameEditions(game) {
+    if (!game) return false;
+    if (game.editions && game.editions.standard && game.editions.ultimate) return true;
+    const t = (game.title || '').toLowerCase().trim();
+    return Number(game.id) === 1000 || t.includes('grand theft auto vi') || t.includes('gta 6') || t.includes('gta vi');
+}
+
+function getGameEditionsData(game) {
+    const override = getUpdatedPriceForGame(game) || {};
+    const stdPrim = override.price_primary ?? game.pricePrimary ?? game.editions?.standard?.pricePrimary ?? 72000;
+    const stdSec = override.price_secondary ?? game.priceSecondary ?? game.editions?.standard?.priceSecondary ?? 50000;
+    const ultPrim = override.price_primary_ultimate ?? game.pricePrimaryUltimate ?? game.editions?.ultimate?.pricePrimary ?? override.price_primary_ps4 ?? game.pricePrimaryPS4 ?? 92000;
+    const ultSec = override.price_secondary_ultimate ?? game.priceSecondaryUltimate ?? game.editions?.ultimate?.priceSecondary ?? override.price_secondary_ps4 ?? game.priceSecondaryPS4 ?? 60000;
+
+    return {
+        standard: {
+            key: 'standard',
+            name: 'Standard Edition',
+            pricePrimary: Number(stdPrim) || 72000,
+            priceSecondary: Number(stdSec) || 50000
+        },
+        ultimate: {
+            key: 'ultimate',
+            name: 'Ultimate Edition',
+            pricePrimary: Number(ultPrim) || 92000,
+            priceSecondary: Number(ultSec) || 60000
+        }
+    };
+}
+
 function getUpdatedPriceForGame(game) {
     const t = (game.title || '').toLowerCase().trim();
     const id = Number(game.id);
@@ -174,6 +257,16 @@ function getUpdatedPriceForGame(game) {
     // 1. Prioridad absoluta: Precios modificados por el administrador desde el panel
     if (typeof window !== 'undefined' && window.ADMIN_CUSTOM_PRICES && window.ADMIN_CUSTOM_PRICES[t]) {
         return window.ADMIN_CUSTOM_PRICES[t];
+    }
+
+    // GTA 6 (Standard Edition y Ultimate Edition)
+    if (id === 1000 || t.includes('grand theft auto vi') || t.includes('gta 6') || t.includes('gta vi')) {
+        return {
+            price_primary: 72000,
+            price_secondary: 50000,
+            price_primary_ultimate: 92000,
+            price_secondary_ultimate: 60000
+        };
     }
 
     if (id === 32 || t.includes('witcher 3')) {
@@ -195,37 +288,37 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('trilogy') && t.includes('grand theft auto')) {
         return { is_offer: false, old_price_primary: null, discount: null };
     }
-    if (id === 6 || id === 4 || (t.includes('grand theft auto v') && !t.includes('trilogy'))) {
+    if (id === 4 || (t.includes('grand theft auto v') && !t.includes('trilogy') && !t.includes('vi'))) {
         return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 17500, price_secondary_ps4: 9500, is_offer: false, old_price_primary: null, discount: null };
     }
-    if (id === 7 || (t.includes('god of war') && (t.includes('ragnarök') || t.includes('ragnarok')))) {
+    if (id === 5 || (t.includes('god of war') && (t.includes('ragnarök') || t.includes('ragnarok')))) {
         return { price_primary: 25000, price_secondary: 17500, price_primary_ps4: 19000, price_secondary_ps4: 11000 };
     }
-    if (id === 8 || t.includes('sparking')) {
+    if (id === 6 || t.includes('sparking')) {
         return { price_primary: 30000, price_secondary: 20000, price_primary_ps4: 30000, price_secondary_ps4: 20000 };
     }
-    if (id === 15 || (t.includes('spider-man') && !t.includes('spider-man 2') && !t.includes('miles'))) {
+    if (id === 15 || (t.includes('spider-man') && t.includes('game of the year'))) {
         return { price_primary: 30000, price_secondary: 20000, price_primary_ps4: 30000, price_secondary_ps4: 20000 };
     }
     if (id === 33 || (t.includes('battlefield 1') && !t.includes('battlefield 6'))) {
         return { price_primary: 8900, price_secondary: 7000, price_primary_ps4: 8900, price_secondary_ps4: 7000 };
     }
-    if (id === 31 || t.includes('valhalla')) {
+    if (id === 31 || t === "assassin's creed valhalla") {
         return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500 };
     }
-    if (id === 28 || t.includes('fallout 4')) {
+    if (id === 28 || t === 'fallout 4') {
         return { price_primary: 9000, price_secondary: 8200, price_primary_ps4: 9000, price_secondary_ps4: 8200 };
     }
-    if (id === 12 || id === 10 || (t.includes('resident evil 4') && !t.includes('raccoon'))) {
+    if (id === 10 || t === 'resident evil 4 remake') {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500, is_offer: false, old_price_primary: null, discount: null };
     }
-    if (id === 9 || id === 7 || (t.includes('mortal kombat 1') && !t.includes('xl') && !t.includes('definitive'))) {
+    if (id === 7 || (t.includes('mortal kombat 1') && !t.includes('xl') && !t.includes('definitive') && !t.includes('11'))) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500, is_offer: false, old_price_primary: null, discount: null };
     }
-    if (id === 13 || id === 11 || t.includes('hogwarts')) {
+    if (id === 11 || t.includes('hogwarts')) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500, is_offer: false, old_price_primary: null, discount: null };
     }
-    if (id === 14 || id === 12 || (t.includes('red dead redemption 2') && !t.includes('lote'))) {
+    if (id === 12 || (t.includes('red dead redemption 2') && !t.includes('lote'))) {
         return { is_offer: false, old_price_primary: null, discount: null };
     }
     // 14 Nuevos juegos
@@ -253,19 +346,19 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('mafia') && t.includes('trilogy')) {
         return { price_primary: 12500, price_secondary: 8500, price_primary_ps4: 12500, price_secondary_ps4: 8500 };
     }
-    if (t.includes('mafia') && (t.includes('definitiva') || t.includes('definitive'))) {
+    if (id === 51 || (t.includes('mafia') && t.includes('edición definitiva'))) {
         return { price_primary: 8500, price_secondary: 6300, price_primary_ps4: 8500, price_secondary_ps4: 6300 };
     }
     if (t.includes('god of war') && t.includes('deluxe')) {
         return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500 };
     }
-    if (t.includes('naruto') && t.includes('storm') && !t.includes('storm 4')) {
+    if (id === 53 || (t.includes('naruto') && t.includes('trilogy'))) {
         return { price_primary: 14500, price_secondary: 8000, price_primary_ps4: 14500, price_secondary_ps4: 8000 };
     }
-    if (t.includes('motogp')) {
+    if (id === 54 || t.includes('motogp™ 25') || t.includes('motogp 25')) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
-    if (t.includes('little nightmares')) {
+    if (id === 55 || t === 'little nightmares ii') {
         return { price_primary: 10000, price_secondary: 7500, price_primary_ps4: 10000, price_secondary_ps4: 7500 };
     }
     if (t.includes('modern warfare 4') || t.includes('mw4')) {
@@ -317,7 +410,7 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('super-villains') || t.includes('supervillains')) {
         return { price_primary: 8200, price_secondary: 6800, price_primary_ps4: 8200, price_secondary_ps4: 6800 };
     }
-    if (t.includes('jurassic')) {
+    if (id === 72 || t === 'jurassic world evolution 2') {
         return { price_primary: 16000, price_secondary: 10000, price_primary_ps4: 16000, price_secondary_ps4: 10000 };
     }
     if (t.includes('lote') && t.includes('red dead')) {
@@ -332,7 +425,7 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('back 4 blood')) {
         return { price_primary: 10000, price_secondary: 7500, price_primary_ps4: 10000, price_secondary_ps4: 7500 };
     }
-    if (t.includes('days gone')) {
+    if (id === 77 || t === 'days gone') {
         return { price_primary: 27000, price_secondary: 10000, price_primary_ps4: 27000, price_secondary_ps4: 10000 };
     }
     if (t.includes('bloodborne')) {
@@ -353,7 +446,7 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('dead by daylight')) {
         return { price_primary: 16000, price_secondary: 9500, price_primary_ps4: 16000, price_secondary_ps4: 9500 };
     }
-    if (id === 84 || t.includes('silent hill')) {
+    if (id === 84 || t === 'silent hill 2') {
         return { price_primary: 31000, price_secondary: 20000 };
     }
     if (id === 85 || t.includes('fórmula 1') || t.includes('formula 1') || t.includes('f1 25') || t.includes('f1 24') || t.includes('f1 2026') || (t.includes('f1') && t.includes('pack'))) {
@@ -455,15 +548,20 @@ async function syncCatalogWithSupabase() {
                 return;
             }
 
+            if (isEspanolLatinoTitle(g.title)) {
+                return;
+            }
+
             const platforms = Array.isArray(g.platforms) ? g.platforms : [];
             const isPs3Only = platforms.length === 1 && platforms[0] === 'PS3';
             const isAvailable = (g.availability || 'disponible') !== 'sin_stock';
-            const coverImg = resolveGameCover(g.image, g.title);
+            const resolvedTitle = resolveGameTitle(g.title, g.id);
+            const coverImg = resolveGameCover(g.image, resolvedTitle || g.title, g.id);
 
             if (isPs3Only) {
                 ps3Games.push({
                     id: Number(g.id),
-                    title: g.title || '',
+                    title: resolvedTitle,
                     image: coverImg,
                     price: Number(g.price_ps3) || 0,
                     isBundle: Boolean(g.is_bundle),
@@ -473,40 +571,93 @@ async function syncCatalogWithSupabase() {
                     availability: g.availability || 'disponible'
                 });
             } else {
-                const override = getUpdatedPriceForGame(g);
-                ps4ps5Games.push({
+                const override = getUpdatedPriceForGame({ ...g, title: resolvedTitle });
+                const normTitle = resolvedTitle.toLowerCase().trim();
+                const isGta6 = normTitle === 'grand theft auto vi' || normTitle === 'gta 6' || normTitle === 'gta vi';
+                const stdPrim = override?.price_primary ?? (Number(g.price_primary) || (isGta6 ? 72000 : 0));
+                const stdSec = override?.price_secondary ?? ((g.price_secondary !== null && g.price_secondary !== undefined && g.price_secondary !== '') ? Number(g.price_secondary) : (isGta6 ? 50000 : null));
+                const ultPrim = override?.price_primary_ultimate ?? (isGta6 && g.price_primary_ps4 ? Number(g.price_primary_ps4) : (isGta6 ? 92000 : null));
+                const ultSec = override?.price_secondary_ultimate ?? (isGta6 && g.price_secondary_ps4 ? Number(g.price_secondary_ps4) : (isGta6 ? 60000 : null));
+
+                const cleanDesc = String(g.description || '')
+                    .replace(/\uFE0F/g, '')
+                    .replace(/PAYDAY 2: CRIMEWAVE EDITION\.\./g, 'PAYDAY 2: Crimewave Edition.')
+                    .replace(/\s+SUBTITULADO/g, '');
+
+                const gameObj = {
                     id: Number(g.id),
-                    title: g.title || '',
+                    title: resolvedTitle,
+                    rawTitle: g.title || resolvedTitle,
                     platforms: platforms.length > 0 ? platforms : ["PS4", "PS5"],
                     category: g.category || 'accion',
-                    pricePrimary: override?.price_primary ?? (Number(g.price_primary) || 0),
-                    priceSecondary: override?.price_secondary ?? ((g.price_secondary !== null && g.price_secondary !== undefined && g.price_secondary !== '') ? Number(g.price_secondary) : null),
-                    pricePrimaryPS4: override?.price_primary_ps4 ?? ((g.price_primary_ps4 !== null && g.price_primary_ps4 !== undefined && g.price_primary_ps4 !== '') ? Number(g.price_primary_ps4) : null),
-                    priceSecondaryPS4: override?.price_secondary_ps4 ?? ((g.price_secondary_ps4 !== null && g.price_secondary_ps4 !== undefined && g.price_secondary_ps4 !== '') ? Number(g.price_secondary_ps4) : null),
+                    pricePrimary: stdPrim,
+                    priceSecondary: stdSec,
+                    pricePrimaryPS4: isGta6 ? null : (override?.price_primary_ps4 ?? ((g.price_primary_ps4 !== null && g.price_primary_ps4 !== undefined && g.price_primary_ps4 !== '') ? Number(g.price_primary_ps4) : null)),
+                    priceSecondaryPS4: isGta6 ? null : (override?.price_secondary_ps4 ?? ((g.price_secondary_ps4 !== null && g.price_secondary_ps4 !== undefined && g.price_secondary_ps4 !== '') ? Number(g.price_secondary_ps4) : null)),
                     isOffer: (override && override.is_offer !== undefined) ? Boolean(override.is_offer) : Boolean(g.is_offer),
                     oldPricePrimary: (override && override.old_price_primary !== undefined) ? override.old_price_primary : ((g.old_price_primary !== null && g.old_price_primary !== undefined && g.old_price_primary !== '') ? Number(g.old_price_primary) : null),
                     discount: (override && override.discount !== undefined) ? override.discount : (g.discount || null),
                     image: coverImg,
-                    description: g.description || '',
+                    description: cleanDesc,
                     genre: g.genre || '',
-                    languages: g.languages || 'Español Latino, Inglés',
+                    languages: (g.languages || 'Español, Inglés').replace(/Español Latino/gi, 'Español'),
                     size: g.size || 'Aprox. 50 GB',
                     inStock: isAvailable,
                     availability: g.availability || 'disponible',
                     isFeatured: Boolean(g.is_featured)
-                });
+                };
+
+                if (isGta6 || override?.editions) {
+                    gameObj.pricePrimaryUltimate = ultPrim || 92000;
+                    gameObj.priceSecondaryUltimate = ultSec || 60000;
+                    gameObj.editions = {
+                        standard: {
+                            name: 'Standard Edition',
+                            pricePrimary: stdPrim,
+                            priceSecondary: stdSec
+                        },
+                        ultimate: {
+                            name: 'Ultimate Edition',
+                            pricePrimary: gameObj.pricePrimaryUltimate,
+                            priceSecondary: gameObj.priceSecondaryUltimate
+                        }
+                    };
+                }
+
+                ps4ps5Games.push(gameObj);
             }
         });
 
-        // Fusionar juegos de Supabase con los locales (excluyendo juegos eliminados)
+        // Fusionar juegos de Supabase con los locales (excluyendo juegos eliminados y «Español Latino»)
         if (typeof GAMES_DATA !== 'undefined') {
-            const dbTitles = new Set(ps4ps5Games.map(g => (g.title || '').toLowerCase().trim()));
-            const deletedSet = new Set((window.DELETED_GAMES_LIST || []).map(t => String(t).toLowerCase().trim()));
-            const missingLocal = GAMES_DATA.filter(g => {
-                const titleNorm = (g.title || '').toLowerCase().trim();
-                return !dbTitles.has(titleNorm) && !deletedSet.has(titleNorm);
+            const deletedNormSet = new Set([
+                ...(window.DELETED_GAMES_LIST || []).map(t => normalizeCatalogKey(t)),
+                ...(window.RETIRED_CATALOG_TITLES || []).map(t => normalizeCatalogKey(t))
+            ]);
+            const validDbGames = ps4ps5Games.filter(g => {
+                if (isEspanolLatinoTitle(g.title) || isEspanolLatinoTitle(g.rawTitle)) return false;
+                if (deletedNormSet.has(normalizeCatalogKey(g.title)) || deletedNormSet.has(normalizeCatalogKey(g.rawTitle))) return false;
+                return true;
             });
-            const merged = [...ps4ps5Games.filter(g => !deletedSet.has((g.title || '').toLowerCase().trim())), ...missingLocal];
+            const dbKeys = new Set();
+            validDbGames.forEach(g => {
+                dbKeys.add(normalizeCatalogKey(g.title));
+                if (g.rawTitle) dbKeys.add(normalizeCatalogKey(g.rawTitle));
+            });
+
+            const missingLocal = GAMES_DATA.filter(g => {
+                if (isEspanolLatinoTitle(g.title)) return false;
+                const nk = normalizeCatalogKey(g.title);
+                return !dbKeys.has(nk) && !deletedNormSet.has(nk);
+            });
+            const merged = [...validDbGames, ...missingLocal];
+
+            // Asegurar que GTA VI quede destacado al principio del catálogo
+            merged.sort((a, b) => {
+                const aGta = (a.id === 1000 || (a.title || '').toLowerCase().trim() === 'grand theft auto vi') ? 1 : 0;
+                const bGta = (b.id === 1000 || (b.title || '').toLowerCase().trim() === 'grand theft auto vi') ? 1 : 0;
+                return bGta - aGta;
+            });
 
             GAMES_DATA.length = 0;
             GAMES_DATA.push(...merged);
@@ -805,6 +956,23 @@ function createGameCardHtml(game) {
         statusBadgeHtml = `<span style="background: rgba(139, 92, 246, 0.9); color: #fff; font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; text-transform: uppercase;">Próximamente</span>`;
     }
 
+    // Soporte de ediciones (ej: GTA VI Standard Edition y Ultimate Edition)
+    const hasEditions = hasGameEditions(game);
+    const editionsData = hasEditions ? getGameEditionsData(game) : null;
+    const activeEditionKey = hasEditions ? (cardSelectedEditions[game.id] || 'standard') : 'standard';
+    const activeEd = hasEditions ? (editionsData[activeEditionKey] || editionsData.standard) : null;
+
+    const editionSelectorCardHtml = hasEditions ? `
+        <div class="card-edition-selector" style="display: flex; gap: 6px; margin-bottom: 10px;">
+            <button type="button" id="cardEdBtn_${game.id}_standard" onclick="selectCardEdition(${game.id}, 'standard')" style="flex: 1; padding: 5px 6px; border-radius: 6px; border: 1.5px solid ${activeEditionKey === 'standard' ? 'var(--color-primary)' : 'rgba(255,255,255,0.16)'}; background: ${activeEditionKey === 'standard' ? 'rgba(255,229,0,0.14)' : 'rgba(255,255,255,0.04)'}; color: ${activeEditionKey === 'standard' ? 'var(--color-primary)' : 'var(--text-muted)'}; font-weight: 800; font-size: 0.72rem; cursor: pointer; transition: all 0.2s;">
+                STANDARD EDITION
+            </button>
+            <button type="button" id="cardEdBtn_${game.id}_ultimate" onclick="selectCardEdition(${game.id}, 'ultimate')" style="flex: 1; padding: 5px 6px; border-radius: 6px; border: 1.5px solid ${activeEditionKey === 'ultimate' ? 'var(--color-primary)' : 'rgba(255,255,255,0.16)'}; background: ${activeEditionKey === 'ultimate' ? 'rgba(255,229,0,0.14)' : 'rgba(255,255,255,0.04)'}; color: ${activeEditionKey === 'ultimate' ? 'var(--color-primary)' : 'var(--text-muted)'}; font-weight: 800; font-size: 0.72rem; cursor: pointer; transition: all 0.2s;">
+                <i class="fa-solid fa-star" style="font-size: 0.65rem;"></i> ULTIMATE EDITION
+            </button>
+        </div>
+    ` : '';
+
     // Botón de WhatsApp según estado:
     // - Si es "Disponible": Se muestra normalmente ("Comprar por WhatsApp")
     // - Si es "Próximamente": SE DEBE MOSTRAR ("Consultar / Encargar")
@@ -836,6 +1004,7 @@ function createGameCardHtml(game) {
             <div class="card-body">
                 <span class="card-category">${escapeHtml(game.category.toUpperCase())}</span>
                 <h3 class="card-title" title="${escapeHtml(game.title)}">${escapeHtml(game.title)}</h3>
+                ${editionSelectorCardHtml}
 
                 <div class="card-pricing">
                     <div class="price-row">
@@ -845,6 +1014,9 @@ function createGameCardHtml(game) {
                         <span class="price-amount-group">
                             ${oldPriceHtml}
                             ${(() => {
+                                if (hasEditions && activeEd) {
+                                    return `<span class="price-value highlight" id="cardPrimPrice_${game.id}">${formatPrice(activeEd.pricePrimary)}</span>`;
+                                }
                                 if (game.pricePrimaryPS4) {
                                     if (currentPlatformFilter === 'PS4') {
                                         return `<span class="price-value highlight">${formatPrice(game.pricePrimaryPS4)}</span>`;
@@ -862,7 +1034,10 @@ function createGameCardHtml(game) {
                         <span class="account-type-label">
                             <i class="fa-solid fa-user"></i> Secundaria:
                         </span>
-                        <span class="price-value">${(() => {
+                        <span class="price-value" id="cardSecPrice_${game.id}">${(() => {
+                            if (hasEditions && activeEd) {
+                                return activeEd.priceSecondary ? formatPrice(activeEd.priceSecondary) : '<span style="color: var(--text-muted); font-size: 0.85rem; font-weight: normal;">Sin stock</span>';
+                            }
                             if (game.pricePrimaryPS4) {
                                 if (currentPlatformFilter === 'PS4') {
                                     return game.priceSecondaryPS4 ? formatPrice(game.priceSecondaryPS4) : '<span style="color: var(--text-muted); font-size: 0.85rem; font-weight: normal;">Sin stock</span>';
@@ -888,6 +1063,39 @@ function createGameCardHtml(game) {
     `;
 }
 
+function selectCardEdition(gameId, editionKey) {
+    const game = GAMES_DATA.find(g => g.id === gameId);
+    if (!game || !hasGameEditions(game)) return;
+    cardSelectedEditions[gameId] = editionKey;
+    const editionsData = getGameEditionsData(game);
+    const ed = editionsData[editionKey] || editionsData.standard;
+
+    const btnStd = document.getElementById(`cardEdBtn_${gameId}_standard`);
+    const btnUlt = document.getElementById(`cardEdBtn_${gameId}_ultimate`);
+    if (btnStd) {
+        const isStd = editionKey === 'standard';
+        btnStd.style.borderColor = isStd ? 'var(--color-primary)' : 'rgba(255,255,255,0.16)';
+        btnStd.style.background = isStd ? 'rgba(255,229,0,0.14)' : 'rgba(255,255,255,0.04)';
+        btnStd.style.color = isStd ? 'var(--color-primary)' : 'var(--text-muted)';
+    }
+    if (btnUlt) {
+        const isUlt = editionKey === 'ultimate';
+        btnUlt.style.borderColor = isUlt ? 'var(--color-primary)' : 'rgba(255,255,255,0.16)';
+        btnUlt.style.background = isUlt ? 'rgba(255,229,0,0.14)' : 'rgba(255,255,255,0.04)';
+        btnUlt.style.color = isUlt ? 'var(--color-primary)' : 'var(--text-muted)';
+    }
+
+    const primEl = document.getElementById(`cardPrimPrice_${gameId}`);
+    const secEl = document.getElementById(`cardSecPrice_${gameId}`);
+    if (primEl) primEl.textContent = formatPrice(ed.pricePrimary);
+    if (secEl) {
+        secEl.innerHTML = ed.priceSecondary
+            ? formatPrice(ed.priceSecondary)
+            : '<span style="color: var(--text-muted); font-size: 0.85rem; font-weight: normal;">Sin stock</span>';
+    }
+}
+window.selectCardEdition = selectCardEdition;
+
 
 /**
  * 6. CONTROL DEL MODAL DE DETALLES DEL JUEGO
@@ -898,6 +1106,8 @@ function openGameModal(gameId) {
 
     selectedGame = game;
     selectedAccountType = 'primary';
+    selectedModalEdition = cardSelectedEditions[game.id] || 'standard';
+
     // Si el usuario ya está filtrando por una plataforma específica y el juego la incluye, seleccionarla
     if (currentPlatformFilter === 'PS4' && game.platforms.includes('PS4')) {
         selectedModalPlatform = 'PS4';
@@ -905,6 +1115,17 @@ function openGameModal(gameId) {
         selectedModalPlatform = 'PS5';
     } else {
         selectedModalPlatform = (game.platforms.includes('PS4')) ? 'PS4' : (game.platforms[0] || 'PS5');
+    }
+
+    // Mostrar u ocultar selector de edición (ej: GTA VI Standard Edition y Ultimate Edition)
+    const editionBox = document.getElementById('modalEditionSelectorBox');
+    if (editionBox) {
+        if (hasGameEditions(game)) {
+            editionBox.style.display = 'block';
+            updateModalEditionButtonsUI();
+        } else {
+            editionBox.style.display = 'none';
+        }
     }
 
     // Rellenamos la información del modal
@@ -1010,6 +1231,14 @@ function closeGameModal() {
 
 function selectAccountType(type) {
     if (!selectedGame) return;
+    if (hasGameEditions(selectedGame)) {
+        const editionsData = getGameEditionsData(selectedGame);
+        const ed = editionsData[selectedModalEdition] || editionsData.standard;
+        if (type === 'secondary' && !ed.priceSecondary) return;
+        selectedAccountType = type;
+        updateModalAccountSelection();
+        return;
+    }
     const isPS4 = selectedModalPlatform === 'PS4';
     const hasSecondary = isPS4
         ? (selectedGame.priceSecondaryPS4 !== undefined ? selectedGame.priceSecondaryPS4 : selectedGame.priceSecondary)
@@ -1018,6 +1247,35 @@ function selectAccountType(type) {
     selectedAccountType = type;
     updateModalAccountSelection();
 }
+
+function updateModalEditionButtonsUI() {
+    const btnStd = document.getElementById('modalEditionStandard');
+    const btnUlt = document.getElementById('modalEditionUltimate');
+    if (btnStd) {
+        const isStd = selectedModalEdition === 'standard';
+        btnStd.style.borderColor = isStd ? 'var(--color-primary)' : 'var(--border-card)';
+        btnStd.style.background = isStd ? 'rgba(255,229,0,0.14)' : 'transparent';
+        btnStd.style.color = isStd ? 'var(--color-primary)' : 'var(--text-muted)';
+        btnStd.classList.toggle('active', isStd);
+    }
+    if (btnUlt) {
+        const isUlt = selectedModalEdition === 'ultimate';
+        btnUlt.style.borderColor = isUlt ? 'var(--color-primary)' : 'var(--border-card)';
+        btnUlt.style.background = isUlt ? 'rgba(255,229,0,0.14)' : 'transparent';
+        btnUlt.style.color = isUlt ? 'var(--color-primary)' : 'var(--text-muted)';
+        btnUlt.classList.toggle('active', isUlt);
+    }
+}
+
+function selectModalEdition(editionKey) {
+    if (!selectedGame) return;
+    selectedModalEdition = editionKey;
+    cardSelectedEditions[selectedGame.id] = editionKey;
+    updateModalEditionButtonsUI();
+    selectCardEdition(selectedGame.id, editionKey);
+    updateModalAccountSelection();
+}
+window.selectModalEdition = selectModalEdition;
 
 /**
  * Cambia la plataforma activa en el modal de detalles (PS4 / PS5)
@@ -1067,25 +1325,46 @@ function updateModalAccountSelection() {
     const priceValue = document.getElementById('modalPriceValue');
     const priceLabel = document.getElementById('modalAccountTypeLabel');
 
-    // Determinar precio según plataforma y tipo de cuenta
+    const hasEditions = hasGameEditions(selectedGame);
+    const editionsData = hasEditions ? getGameEditionsData(selectedGame) : null;
+    const activeEd = hasEditions ? (editionsData[selectedModalEdition] || editionsData.standard) : null;
+
+    if (hasEditions && tabSecondary && activeEd) {
+        if (!activeEd.priceSecondary) {
+            tabSecondary.style.opacity = '0.4';
+            tabSecondary.style.cursor = 'not-allowed';
+            tabSecondary.title = 'Sin stock disponible en cuenta secundaria';
+            if (selectedAccountType === 'secondary') selectedAccountType = 'primary';
+        } else {
+            tabSecondary.style.opacity = '';
+            tabSecondary.style.cursor = '';
+            tabSecondary.title = '';
+        }
+    }
+
+    // Determinar precio según edición, plataforma y tipo de cuenta
     const isPS4 = selectedModalPlatform === 'PS4';
     let price;
-    if (selectedAccountType === 'primary') {
+    if (hasEditions && activeEd) {
+        price = selectedAccountType === 'primary' ? activeEd.pricePrimary : activeEd.priceSecondary;
+    } else if (selectedAccountType === 'primary') {
         price = (isPS4 && selectedGame.pricePrimaryPS4) ? selectedGame.pricePrimaryPS4 : selectedGame.pricePrimary;
     } else {
         price = (isPS4 && selectedGame.priceSecondaryPS4) ? selectedGame.priceSecondaryPS4 : selectedGame.priceSecondary;
     }
 
+    const editionSuffix = (hasEditions && activeEd) ? ` (${activeEd.name})` : '';
+
     if (selectedAccountType === 'primary') {
         if (tabPrimary) tabPrimary.classList.add('active');
         if (tabSecondary) tabSecondary.classList.remove('active');
-        if (priceLabel) priceLabel.textContent = 'Precio Cuenta Primaria:';
+        if (priceLabel) priceLabel.textContent = `Precio Cuenta Primaria${editionSuffix}:`;
         if (priceValue) priceValue.textContent = formatPrice(price);
         if (tabDesc) tabDesc.innerHTML = '<strong>Cuenta Primaria:</strong> Jugás desde tu usuario personal de siempre, guardás tus propios trofeos y podés jugar tanto online como offline.';
     } else {
         if (tabPrimary) tabPrimary.classList.remove('active');
         if (tabSecondary) tabSecondary.classList.add('active');
-        if (priceLabel) priceLabel.textContent = 'Precio Cuenta Secundaria:';
+        if (priceLabel) priceLabel.textContent = `Precio Cuenta Secundaria${editionSuffix}:`;
         if (priceValue) priceValue.textContent = formatPrice(price);
         if (tabDesc) tabDesc.innerHTML = '<strong>Cuenta Secundaria:</strong> Jugás desde el usuario enviado por nosotros. Opción más económica con el juego 100% completo (requiere internet para jugar).';
     }
@@ -1211,7 +1490,7 @@ function generateOrderNumber() {
 /**
  * Abre el modal de checkout y pago por transferencia para cualquier juego
  */
-function openCheckoutModal(gameId, type = 'catalog', preselectedAccount = 'primary', preselectedPlatform = null) {
+function openCheckoutModal(gameId, type = 'catalog', preselectedAccount = 'primary', preselectedPlatform = null, preselectedEdition = null) {
     let game = null;
     currentCheckoutType = type;
 
@@ -1233,6 +1512,7 @@ function openCheckoutModal(gameId, type = 'catalog', preselectedAccount = 'prima
 
     currentCheckoutGame = game;
     currentCheckoutAccountType = preselectedAccount;
+    currentCheckoutEdition = preselectedEdition || cardSelectedEditions[game.id] || 'standard';
     currentCheckoutOrderNumber = generateOrderNumber();
 
     // Determinar plataforma seleccionada
@@ -1282,6 +1562,20 @@ function openCheckoutModal(gameId, type = 'catalog', preselectedAccount = 'prima
         }
     }
 
+    // Selector interactivo de Edición (ej: GTA VI Standard Edition y Ultimate Edition)
+    const editionRow = document.getElementById('checkoutEditionRow');
+    const chkEdStd = document.getElementById('chkEditionStandard');
+    const chkEdUlt = document.getElementById('chkEditionUltimate');
+    if (editionRow) {
+        if (type === 'catalog' && hasGameEditions(game)) {
+            editionRow.style.display = 'flex';
+            if (chkEdStd) chkEdStd.classList.toggle('active', currentCheckoutEdition === 'standard');
+            if (chkEdUlt) chkEdUlt.classList.toggle('active', currentCheckoutEdition === 'ultimate');
+        } else {
+            editionRow.style.display = 'none';
+        }
+    }
+
     // Selector interactivo de tipo de cuenta
     const accountRow = document.getElementById('checkoutAccountRow');
     if (accountRow) {
@@ -1305,11 +1599,18 @@ function openCheckoutModal(gameId, type = 'catalog', preselectedAccount = 'prima
         currentCheckoutAccountType = 'digital';
     } else {
         if (accountRow) accountRow.style.display = 'flex';
-        // Verificar si hay precio secundario según la plataforma seleccionada
-        const initIsPS4 = currentCheckoutPlatform === 'PS4';
-        const hasSecondary = initIsPS4
-            ? (game.priceSecondaryPS4 !== undefined ? game.priceSecondaryPS4 : game.priceSecondary)
-            : game.priceSecondary;
+        // Verificar si hay precio secundario según la edición o plataforma seleccionada
+        let hasSecondary = false;
+        if (hasGameEditions(game)) {
+            const editionsData = getGameEditionsData(game);
+            const ed = editionsData[currentCheckoutEdition] || editionsData.standard;
+            hasSecondary = Boolean(ed.priceSecondary);
+        } else {
+            const initIsPS4 = currentCheckoutPlatform === 'PS4';
+            hasSecondary = initIsPS4
+                ? (game.priceSecondaryPS4 !== undefined ? game.priceSecondaryPS4 : game.priceSecondary)
+                : game.priceSecondary;
+        }
         if (!hasSecondary) {
             currentCheckoutAccountType = 'primary';
             if (chkSecondary) chkSecondary.style.display = 'none';
@@ -1354,8 +1655,9 @@ function openCheckoutForCurrentGame() {
     if (!selectedGame) return;
     const chosenAccount = selectedAccountType || 'primary';
     const chosenPlatform = selectedModalPlatform || (selectedGame.platforms ? selectedGame.platforms[0] : 'PS5');
+    const chosenEdition = selectedModalEdition || 'standard';
     closeGameModal();
-    openCheckoutModal(selectedGame.id, 'catalog', chosenAccount, chosenPlatform);
+    openCheckoutModal(selectedGame.id, 'catalog', chosenAccount, chosenPlatform, chosenEdition);
 }
 
 /**
@@ -1530,15 +1832,53 @@ function setCheckoutPlatform(platform) {
 }
 
 /**
+ * Cambia la edición seleccionada en el checkout (Standard Edition vs Ultimate Edition)
+ */
+function setCheckoutEdition(editionKey) {
+    if (!currentCheckoutGame || !hasGameEditions(currentCheckoutGame)) return;
+    currentCheckoutEdition = editionKey;
+    cardSelectedEditions[currentCheckoutGame.id] = editionKey;
+    selectCardEdition(currentCheckoutGame.id, editionKey);
+
+    const chkEdStd = document.getElementById('chkEditionStandard');
+    const chkEdUlt = document.getElementById('chkEditionUltimate');
+    if (chkEdStd) chkEdStd.classList.toggle('active', editionKey === 'standard');
+    if (chkEdUlt) chkEdUlt.classList.toggle('active', editionKey === 'ultimate');
+
+    // Verificar disponibilidad de cuenta secundaria para esta edición
+    const editionsData = getGameEditionsData(currentCheckoutGame);
+    const ed = editionsData[editionKey] || editionsData.standard;
+    const chkSecondary = document.getElementById('chkAccountSecondary');
+    const chkPrimary = document.getElementById('chkAccountPrimary');
+    if (chkSecondary) {
+        chkSecondary.style.display = ed.priceSecondary ? '' : 'none';
+    }
+    if (!ed.priceSecondary && currentCheckoutAccountType === 'secondary') {
+        currentCheckoutAccountType = 'primary';
+        if (chkPrimary) chkPrimary.classList.add('active');
+        if (chkSecondary) chkSecondary.classList.remove('active');
+    }
+
+    updateCheckoutPriceDisplay();
+}
+window.setCheckoutEdition = setCheckoutEdition;
+
+/**
  * Cambia el tipo de cuenta seleccionado en el checkout (Primaria vs Secundaria)
  */
 function setCheckoutAccount(accountType) {
-    const isPS4 = currentCheckoutPlatform === 'PS4';
-    const secondaryPrice = isPS4
-        ? (currentCheckoutGame && (currentCheckoutGame.priceSecondaryPS4 !== undefined ? currentCheckoutGame.priceSecondaryPS4 : currentCheckoutGame.priceSecondary))
-        : (currentCheckoutGame && currentCheckoutGame.priceSecondary);
-    if (accountType === 'secondary' && !secondaryPrice) {
-        return;
+    if (currentCheckoutGame && hasGameEditions(currentCheckoutGame)) {
+        const editionsData = getGameEditionsData(currentCheckoutGame);
+        const ed = editionsData[currentCheckoutEdition] || editionsData.standard;
+        if (accountType === 'secondary' && !ed.priceSecondary) return;
+    } else {
+        const isPS4 = currentCheckoutPlatform === 'PS4';
+        const secondaryPrice = isPS4
+            ? (currentCheckoutGame && (currentCheckoutGame.priceSecondaryPS4 !== undefined ? currentCheckoutGame.priceSecondaryPS4 : currentCheckoutGame.priceSecondary))
+            : (currentCheckoutGame && currentCheckoutGame.priceSecondary);
+        if (accountType === 'secondary' && !secondaryPrice) {
+            return;
+        }
     }
     currentCheckoutAccountType = accountType;
     const chkPrimary = document.getElementById('chkAccountPrimary');
@@ -1565,6 +1905,12 @@ function updateCheckoutPriceDisplay() {
         // currentCheckoutPrice ya está calculado o se actualiza según tier y duración
     } else if (currentCheckoutType === 'ps3') {
         currentCheckoutPrice = currentCheckoutGame.price || 0;
+    } else if (hasGameEditions(currentCheckoutGame)) {
+        const editionsData = getGameEditionsData(currentCheckoutGame);
+        const ed = editionsData[currentCheckoutEdition] || editionsData.standard;
+        currentCheckoutPrice = currentCheckoutAccountType === 'primary'
+            ? ed.pricePrimary
+            : (ed.priceSecondary || ed.pricePrimary);
     } else {
         const isPS4 = currentCheckoutPlatform === 'PS4';
         if (currentCheckoutAccountType === 'primary') {
@@ -1664,12 +2010,19 @@ Adjunto el comprobante de pago.`;
         accountTypeStr = 'Digital';
     }
 
+    let editionLine = '';
+    if (currentCheckoutGame && hasGameEditions(currentCheckoutGame)) {
+        const editionsData = getGameEditionsData(currentCheckoutGame);
+        const ed = editionsData[currentCheckoutEdition] || editionsData.standard;
+        editionLine = `\nEdición: ${ed.name}`;
+    }
+
     const totalStr = formatPrice(currentCheckoutPrice);
 
     return `Hola, ya realicé la transferencia.
 
 Número de orden: ${orderNum}
-Juego: ${gameTitle}
+Juego: ${gameTitle}${editionLine}
 Plataforma: ${platform}
 Tipo de cuenta: ${accountTypeStr}
 Método de pago: Transferencia
@@ -1858,6 +2211,10 @@ function openCheckoutForPsPlus(tierKey, consoleKey, durationMonths) {
             </button>
         `).join('');
     }
+
+    // Ocultar fila de edición cuando es membresía PS Plus
+    const editionRow = document.getElementById('checkoutEditionRow');
+    if (editionRow) editionRow.style.display = 'none';
 
     // Fila de Duración adaptada en lugar de cuenta primaria/secundaria
     const accountRow = document.getElementById('checkoutAccountRow');

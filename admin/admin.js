@@ -27,9 +27,51 @@ function isGameWithEditions(game) {
     );
 }
 
-function resolveGameCover(image, title) {
+function normalizeCatalogKey(title) {
+    return String(title || '')
+        .replace(/\uFE0F/g, '')
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim();
+}
+
+function isEspanolLatinoTitle(title) {
+    const t = String(title || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return t.includes('espanol latino');
+}
+
+function resolveGameTitle(title, id) {
+    const raw = String(title || '').replace(/\uFE0F/g, '').trim();
+    if (typeof window !== 'undefined' && window.MASTER_TITLE_OVERRIDES) {
+        const nk = normalizeCatalogKey(raw);
+        if (nk && window.MASTER_TITLE_OVERRIDES[nk]) {
+            return window.MASTER_TITLE_OVERRIDES[nk];
+        }
+        if (id !== undefined && id !== null && window.MASTER_TITLE_OVERRIDES['id:' + id]) {
+            return window.MASTER_TITLE_OVERRIDES['id:' + id];
+        }
+    }
+    return raw;
+}
+
+function resolveGameCover(image, title, id) {
     let p = (image || '').trim();
     const t = (title || '').toLowerCase().trim();
+
+    if (p.includes('supabase.co/storage/')) {
+        return p;
+    }
+
+    if (typeof window !== 'undefined' && window.MASTER_COVER_OVERRIDES) {
+        const nk = normalizeCatalogKey(title);
+        if (nk && window.MASTER_COVER_OVERRIDES[nk]) {
+            return window.MASTER_COVER_OVERRIDES[nk];
+        }
+        if (id !== undefined && id !== null && window.MASTER_COVER_OVERRIDES['id:' + id]) {
+            return window.MASTER_COVER_OVERRIDES['id:' + id];
+        }
+    }
 
     if (t === 'grand theft auto vi' || t === 'gta 6' || t === 'gta vi') {
         if (!p || p.includes('unsplash.com') || p === 'gta6-cover.png') {
@@ -631,36 +673,47 @@ async function loadGames() {
                     }
                 } catch(e) {}
             } else {
-                validDbGames.push(g);
+                if (!isEspanolLatinoTitle(g.title)) {
+                    validDbGames.push(g);
+                }
             }
         });
 
         const dbGames = validDbGames.map(g => {
-            const resolvedImg = resolveGameCover(g.image, g.title);
-            const overridePrice = getUpdatedPriceForGame(g);
+            const resolvedTitle = resolveGameTitle(g.title, g.id);
+            const resolvedImg = resolveGameCover(g.image, resolvedTitle || g.title, g.id);
+            const overridePrice = getUpdatedPriceForGame({ ...g, title: resolvedTitle });
             return {
                 ...g,
+                rawTitle: g.title || resolvedTitle,
+                title: resolvedTitle,
                 image: resolvedImg,
                 ...(overridePrice || {})
             };
         });
 
-        // Fusionar con los juegos locales de games.js (excluyendo juegos eliminados y retirados)
+        // Fusionar con los juegos locales de games.js (excluyendo juegos eliminados y «Español Latino»)
         if (typeof GAMES_DATA !== 'undefined' && Array.isArray(GAMES_DATA)) {
-            const dbTitles = new Set(dbGames.map(g => (g.title || '').toLowerCase().trim()));
-            const localActiveTitles = new Set(GAMES_DATA.map(g => (g.title || '').toLowerCase().trim()));
-            const customAdminTitles = new Set(Object.keys(window.ADMIN_CUSTOM_PRICES || {}).map(t => String(t).toLowerCase().trim()));
-            const retiredList = (window.RETIRED_CATALOG_TITLES || [])
-                .map(t => String(t).toLowerCase().trim())
-                .filter(t => !localActiveTitles.has(t) && !customAdminTitles.has(t));
-            const deletedSet = new Set([
-                ...(window.DELETED_GAMES_LIST || []).map(t => String(t).toLowerCase().trim()),
-                ...retiredList
+            const deletedNormSet = new Set([
+                ...(window.DELETED_GAMES_LIST || []).map(t => normalizeCatalogKey(t)),
+                ...(window.RETIRED_CATALOG_TITLES || []).map(t => normalizeCatalogKey(t))
             ]);
+            const filteredDbGames = dbGames.filter(g => {
+                if (isEspanolLatinoTitle(g.title) || isEspanolLatinoTitle(g.rawTitle)) return false;
+                if (deletedNormSet.has(normalizeCatalogKey(g.title)) || deletedNormSet.has(normalizeCatalogKey(g.rawTitle))) return false;
+                return true;
+            });
+            const dbKeys = new Set();
+            filteredDbGames.forEach(g => {
+                dbKeys.add(normalizeCatalogKey(g.title));
+                if (g.rawTitle) dbKeys.add(normalizeCatalogKey(g.rawTitle));
+            });
+
             const missingLocal = GAMES_DATA
                 .filter(g => {
-                    const titleNorm = (g.title || '').toLowerCase().trim();
-                    return !dbTitles.has(titleNorm) && !deletedSet.has(titleNorm);
+                    if (isEspanolLatinoTitle(g.title)) return false;
+                    const nk = normalizeCatalogKey(g.title);
+                    return !dbKeys.has(nk) && !deletedNormSet.has(nk);
                 })
                 .map(g => {
                     const override = getUpdatedPriceForGame(g);
@@ -683,17 +736,17 @@ async function loadGames() {
                         is_offer: Boolean(g.isOffer),
                         old_price_primary: g.oldPricePrimary || null,
                         discount: g.discount || null,
-                        image: resolveGameCover(g.image, g.title),
+                        image: resolveGameCover(g.image, g.title, g.id),
                         description: g.description || "",
                         genre: g.genre || "",
-                        languages: g.languages || "Español Latino, Inglés",
+                        languages: (g.languages || "Español, Inglés").replace(/Español Latino/gi, 'Español'),
                         size: g.size || "Aprox. 50 GB",
                         availability: g.availability || (g.inStock === false ? 'sin_stock' : 'disponible'),
                         is_featured: Boolean(g.isFeatured)
                     };
                 });
 
-            allGames = [...dbGames.filter(g => !deletedSet.has((g.title || '').toLowerCase().trim())), ...missingLocal];
+            allGames = [...filteredDbGames, ...missingLocal];
             // Destacar GTA VI al inicio de la tabla del panel
             allGames.sort((a, b) => {
                 const aGta = isGameWithEditions(a) ? 1 : 0;
@@ -726,22 +779,20 @@ async function syncRetiredGamesCleanupToSupabase(sb, rawData) {
     try {
         const { data: { session } } = await sb.auth.getSession();
         if (!session || !session.user) return;
-        if (!Array.isArray(window.RETIRED_CATALOG_TITLES) || window.RETIRED_CATALOG_TITLES.length === 0) return;
 
-        const localActiveTitles = new Set((typeof GAMES_DATA !== 'undefined' ? GAMES_DATA : []).map(g => (g.title || '').toLowerCase().trim()));
-        const customAdminTitles = new Set(Object.keys(window.ADMIN_CUSTOM_PRICES || {}).map(t => String(t).toLowerCase().trim()));
-        const retiredSet = new Set(
-            window.RETIRED_CATALOG_TITLES
-                .map(t => String(t).toLowerCase().trim())
-                .filter(t => !localActiveTitles.has(t) && !customAdminTitles.has(t))
+        const retiredNormSet = new Set(
+            (window.RETIRED_CATALOG_TITLES || []).map(t => normalizeCatalogKey(t))
         );
 
         const idsToRemove = (rawData || [])
-            .filter(g => g && g.id && retiredSet.has((g.title || '').toLowerCase().trim()))
+            .filter(g => g && g.id && !String(g.title || '').startsWith('__') && (
+                isEspanolLatinoTitle(g.title) ||
+                retiredNormSet.has(normalizeCatalogKey(g.title))
+            ))
             .map(g => g.id);
 
         if (idsToRemove.length > 0) {
-            console.log(`[ZONA DIGITAL] Limpiando ${idsToRemove.length} juegos retirados del catálogo en Supabase...`);
+            console.log(`[ZONA DIGITAL] Eliminando ${idsToRemove.length} juegos «Español Latino» en Supabase...`);
             const chunkSize = 50;
             for (let i = 0; i < idsToRemove.length; i += chunkSize) {
                 const chunk = idsToRemove.slice(i, i + chunkSize);
@@ -749,7 +800,7 @@ async function syncRetiredGamesCleanupToSupabase(sb, rawData) {
             }
         }
     } catch (e) {
-        console.warn("Aviso al limpiar juegos retirados en Supabase:", e);
+        console.warn("Aviso al limpiar juegos en Supabase:", e);
     }
 }
 
@@ -758,14 +809,21 @@ async function syncMissingGamesToSupabase(sb, rawData) {
         const { data: { session } } = await sb.auth.getSession();
         if (!session || !session.user) return;
 
-        const existingTitles = new Set((rawData || []).map(g => (g.title || '').trim().toLowerCase()));
-        const deletedSet = new Set((window.DELETED_GAMES_LIST || []).map(t => String(t).toLowerCase().trim()));
+        const existingKeys = new Set();
+        (rawData || []).forEach(g => {
+            if (g && g.title) {
+                existingKeys.add(normalizeCatalogKey(g.title));
+                existingKeys.add(normalizeCatalogKey(resolveGameTitle(g.title, g.id)));
+            }
+        });
+        const deletedNormSet = new Set((window.DELETED_GAMES_LIST || []).map(t => normalizeCatalogKey(t)));
         const toInsert = [];
 
         if (typeof GAMES_DATA !== 'undefined' && Array.isArray(GAMES_DATA)) {
             for (const g of GAMES_DATA) {
-                const normTitle = (g.title || '').trim().toLowerCase();
-                if (!existingTitles.has(normTitle) && !deletedSet.has(normTitle)) {
+                if (isEspanolLatinoTitle(g.title)) continue;
+                const nk = normalizeCatalogKey(g.title);
+                if (!existingKeys.has(nk) && !deletedNormSet.has(nk)) {
                     const override = getUpdatedPriceForGame(g);
                     const hasEditions = isGameWithEditions(g);
                     const ultPrim = override?.price_primary_ultimate ?? (g.pricePrimaryUltimate || (hasEditions ? 92000 : null));
@@ -782,15 +840,15 @@ async function syncMissingGamesToSupabase(sb, rawData) {
                         is_offer: Boolean(g.isOffer),
                         old_price_primary: g.oldPricePrimary || null,
                         discount: g.discount || null,
-                        image: resolveGameCover(g.image, g.title),
+                        image: resolveGameCover(g.image, g.title, g.id),
                         description: g.description || "",
                         genre: g.genre || "",
-                        languages: g.languages || "Español Latino, Inglés",
+                        languages: (g.languages || "Español, Inglés").replace(/Español Latino/gi, 'Español'),
                         size: g.size || "Aprox. 50 GB",
                         availability: g.availability || (g.inStock === false ? 'sin_stock' : 'disponible'),
                         is_featured: Boolean(g.isFeatured)
                     });
-                    existingTitles.add(normTitle);
+                    existingKeys.add(nk);
                 }
             }
         }
@@ -857,14 +915,19 @@ async function syncFixedCoversToSupabase(sb, rawData) {
         if (!session || !session.user) return;
 
         for (const g of rawData) {
-            const resolved = resolveGameCover(g.image, g.title);
-            if (resolved && resolved !== g.image) {
-                await sb.from('games').update({ image: resolved }).eq('id', g.id);
-                console.log(`[ZONA DIGITAL] Portada actualizada en Supabase para "${g.title}": ${resolved}`);
+            if (!g || !g.id || String(g.title || '').startsWith('__') || isEspanolLatinoTitle(g.title)) continue;
+            const resolvedTitle = resolveGameTitle(g.title, g.id);
+            const resolvedImg = resolveGameCover(g.image, resolvedTitle || g.title, g.id);
+            const payload = {};
+            if (resolvedImg && resolvedImg !== g.image) payload.image = resolvedImg;
+            if (resolvedTitle && resolvedTitle !== g.title) payload.title = resolvedTitle;
+            if (Object.keys(payload).length > 0) {
+                await sb.from('games').update(payload).eq('id', g.id);
+                console.log(`[ZONA DIGITAL] Actualizado en Supabase #${g.id}:`, payload);
             }
         }
     } catch (e) {
-        console.warn("Aviso al auto-sincronizar portadas en Supabase:", e);
+        console.warn("Aviso al auto-sincronizar portadas y nombres en Supabase:", e);
     }
 }
 

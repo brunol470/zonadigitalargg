@@ -13,9 +13,29 @@ let isLoadingGames = false;
 // Fallback SVG data-URI seguro e instantáneo (nunca falla ni requiere internet)
 const FALLBACK_IMAGE = "data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2280%22%20height%3D%2280%22%20viewBox%3D%220%200%2080%2080%22%3E%3Crect%20fill%3D%22%23161b27%22%20width%3D%2280%22%20height%3D%2280%22%2F%3E%3Ctext%20fill%3D%22%2394A3B8%22%20font-size%3D%2230%22%20x%3D%2250%25%22%20y%3D%2255%25%22%20dominant-baseline%3D%22middle%22%20text-anchor%3D%22middle%22%3E%F0%9F%8E%AE%3C%2Ftext%3E%3C%2Fsvg%3E";
 
+function isGameWithEditions(game) {
+    if (!game) return false;
+    const t = (game.title || '').toLowerCase().trim();
+    return Boolean(
+        game.editions ||
+        game.price_primary_ultimate ||
+        game.pricePrimaryUltimate ||
+        Number(game.id) === 1000 ||
+        t === 'grand theft auto vi' ||
+        t === 'gta 6' ||
+        t === 'gta vi'
+    );
+}
+
 function resolveGameCover(image, title) {
     let p = (image || '').trim();
     const t = (title || '').toLowerCase().trim();
+
+    if (t === 'grand theft auto vi' || t === 'gta 6' || t === 'gta vi') {
+        if (!p || p.includes('unsplash.com') || p === 'gta6-cover.png') {
+            return 'gta6-rockstar-official.jpg';
+        }
+    }
 
     // Corregir errores conocidos de extensión
     if (p.toLowerCase() === 'bttle1.wedp' || p.includes('bttle1.wedp')) {
@@ -52,9 +72,9 @@ function resolveGameCover(image, title) {
         if (t.includes('mafia') && t.includes('trilogy')) return 'mafia-trilogy.jpg';
         if (t.includes('mafia') && (t.includes('definitiva') || t.includes('definitive'))) return 'mafia-definitive.jpg';
         if (t.includes('god of war') && t.includes('deluxe')) return 'god-of-war-deluxe.jpg';
-        if (t.includes('naruto') && t.includes('storm')) return 'naruto-storm-trilogy.jpg';
+        if (t.includes('naruto') && t.includes('storm') && t.includes('trilogy')) return 'naruto-storm-trilogy.jpg';
         if (t.includes('motogp')) return 'motogp-25.jpg';
-        if (t.includes('little nightmares')) return 'little-nightmares-2.jpg';
+        if (t.includes('little nightmares ii') || t.includes('little nightmares 2')) return 'little-nightmares-2.jpg';
         if (t.includes('modern warfare 4') || t.includes('mw4')) return 'call of duty.jpg';
         // 27 Nuevos juegos
         if (t.includes('dirt rally')) return 'dirt-rally-2.jpg';
@@ -72,10 +92,10 @@ function resolveGameCover(image, title) {
         if (t.includes('storm 4')) return 'naruto-storm-4.jpg';
         if (t.includes('battlefront 2') || t.includes('battlefront ii')) return 'sw-battlefront-2.jpg';
         if (t.includes('super-villains') || t.includes('supervillains')) return 'lego-dc-super-villains.jpg';
-        if (t.includes('jurassic')) return 'jurassic-world-evolution-2.jpg';
+        if (t.includes('jurassic world evolution 2')) return 'jurassic-world-evolution-2.jpg';
         if (t.includes('lote') && t.includes('red dead')) return 'lote-red-dead-redemption.jpg';
         if ((t.includes('last of us') || t.includes('tlou')) && (t.includes('parte 2') || t.includes('part 2') || t.includes('part ii'))) return 'tlou-part2.jpg';
-        if (t.includes('outlast')) return 'outlast-trinity.jpg';
+        if (t.includes('outlast trinity')) return 'outlast-trinity.jpg';
         if (t.includes('back 4 blood')) return 'back-4-blood-ultimate.jpg';
         if (t.includes('days gone')) return 'days-gone.jpg';
         if (t.includes('bloodborne')) return 'bloodborne.jpg';
@@ -84,7 +104,7 @@ function resolveGameCover(image, title) {
         if (t.includes('mortal kombat 1') && (t.includes('definitive') || t.includes('definitiva') || t.includes('edition'))) return 'mk1-definitive.jpg';
         if (t.includes('remake trilogy') || (t.includes('resident evil') && t.includes('trilogy') && !t.includes('village'))) return 're-remake-trilogy.jpg';
         if (t.includes('dead by daylight')) return 'dead-by-daylight.jpg';
-        if (t.includes('silent hill')) return 'silent-hill-2.jpg';
+        if (t.includes('silent hill 2')) return 'silent-hill-2.jpg';
         if (t.includes('fórmula 1') || t.includes('formula 1') || t.includes('f1 25') || t.includes('f1 24') || t.includes('f1 2026') || (t.includes('f1') && t.includes('pack'))) return 'formula-1-pack-2026.jpg';
     }
 
@@ -98,6 +118,26 @@ function getUpdatedPriceForGame(game) {
     // 1. Prioridad absoluta: Precios modificados por el administrador desde el panel
     if (typeof window !== 'undefined' && window.ADMIN_CUSTOM_PRICES && window.ADMIN_CUSTOM_PRICES[t]) {
         return window.ADMIN_CUSTOM_PRICES[t];
+    }
+
+    // GTA 6 con soporte de dos ediciones (Standard Edition y Ultimate Edition)
+    if (id === 1000 || t === 'grand theft auto vi' || t === 'gta 6' || t === 'gta vi') {
+        const stdPrim = Number(game.price_primary || game.pricePrimary) || 72000;
+        const stdSec = Number(game.price_secondary || game.priceSecondary) || 50000;
+        const ultPrim = Number(game.price_primary_ultimate || game.pricePrimaryUltimate || game.price_primary_ps4) || 92000;
+        const ultSec = Number(game.price_secondary_ultimate || game.priceSecondaryUltimate || game.price_secondary_ps4) || 60000;
+        return {
+            price_primary: stdPrim,
+            price_secondary: stdSec,
+            price_primary_ps4: ultPrim,
+            price_secondary_ps4: ultSec,
+            price_primary_ultimate: ultPrim,
+            price_secondary_ultimate: ultSec,
+            editions: {
+                standard: { name: 'Standard Edition', pricePrimary: stdPrim, priceSecondary: stdSec },
+                ultimate: { name: 'Ultimate Edition', pricePrimary: ultPrim, priceSecondary: ultSec }
+            }
+        };
     }
 
     if (id === 32 || t.includes('witcher 3')) {
@@ -162,7 +202,7 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('expedition 33') || t.includes('clair obscur')) {
         return { price_primary: 38000, price_secondary: 20000 };
     }
-    if (t.includes('lego') && t.includes('batman')) {
+    if (t.includes('lego') && t.includes('batman') && t.includes('caballero oscuro')) {
         return { price_primary: 49000, price_secondary: 30000, price_primary_ps4: 49000, price_secondary_ps4: 30000 };
     }
     if (t.includes('uncharted') && (t.includes('nathan drake') || t.includes('collection'))) {
@@ -183,13 +223,13 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('god of war') && t.includes('deluxe')) {
         return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500 };
     }
-    if (t.includes('naruto') && t.includes('storm') && !t.includes('storm 4')) {
+    if (t.includes('naruto') && t.includes('storm') && t.includes('trilogy')) {
         return { price_primary: 14500, price_secondary: 8000, price_primary_ps4: 14500, price_secondary_ps4: 8000 };
     }
-    if (t.includes('motogp')) {
+    if (t.includes('motogp 25') || t.includes('motogp™25')) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
-    if (t.includes('little nightmares')) {
+    if (t.includes('little nightmares ii') || t.includes('little nightmares 2')) {
         return { price_primary: 10000, price_secondary: 7500, price_primary_ps4: 10000, price_secondary_ps4: 7500 };
     }
     if (t.includes('modern warfare 4') || t.includes('mw4')) {
@@ -220,7 +260,7 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('cyberpunk')) {
         return { price_primary: 19000, price_secondary: 10000, price_primary_ps4: 19000, price_secondary_ps4: 10000, is_offer: true, old_price_primary: 25000, discount: "-24%" };
     }
-    if (t.includes('wwe')) {
+    if (t.includes('wwe 2k26')) {
         return { price_primary: 28000, price_secondary: 17000, price_primary_ps4: 28000, price_secondary_ps4: 17000 };
     }
     if (t.includes("no man's sky") || t.includes("no mans sky")) {
@@ -241,7 +281,7 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('super-villains') || t.includes('supervillains')) {
         return { price_primary: 8200, price_secondary: 6800, price_primary_ps4: 8200, price_secondary_ps4: 6800 };
     }
-    if (t.includes('jurassic')) {
+    if (t.includes('jurassic world evolution 2')) {
         return { price_primary: 16000, price_secondary: 10000, price_primary_ps4: 16000, price_secondary_ps4: 10000 };
     }
     if (t.includes('lote') && t.includes('red dead')) {
@@ -250,7 +290,7 @@ function getUpdatedPriceForGame(game) {
     if ((t.includes('last of us') || t.includes('tlou')) && (t.includes('parte 2') || t.includes('part 2') || t.includes('part ii'))) {
         return { price_primary: 22000, price_secondary: 16000, price_primary_ps4: 22000, price_secondary_ps4: 16000, is_offer: true, old_price_primary: 29500, discount: "-25%" };
     }
-    if (t.includes('outlast')) {
+    if (t.includes('outlast trinity')) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
     if (t.includes('back 4 blood')) {
@@ -277,8 +317,8 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('dead by daylight')) {
         return { price_primary: 16000, price_secondary: 9500, price_primary_ps4: 16000, price_secondary_ps4: 9500 };
     }
-    if (id === 84 || t.includes('silent hill')) {
-        return { price_primary: 31000, price_secondary: 20000 };
+    if (id === 84 || (t.includes('silent hill 2') && !t.includes('39.200'))) {
+        return { price_primary: 20700, price_secondary: 14500 };
     }
     if (id === 85 || t.includes('fórmula 1') || t.includes('formula 1') || t.includes('f1 25') || t.includes('f1 24') || t.includes('f1 2026') || (t.includes('f1') && t.includes('pack'))) {
         return { price_primary: 35000, price_secondary: 20000, price_primary_ps4: 35000, price_secondary_ps4: 20000 };
@@ -605,10 +645,18 @@ async function loadGames() {
             };
         });
 
-        // Fusionar con los juegos locales de games.js (excluyendo juegos eliminados)
+        // Fusionar con los juegos locales de games.js (excluyendo juegos eliminados y retirados)
         if (typeof GAMES_DATA !== 'undefined' && Array.isArray(GAMES_DATA)) {
             const dbTitles = new Set(dbGames.map(g => (g.title || '').toLowerCase().trim()));
-            const deletedSet = new Set((window.DELETED_GAMES_LIST || []).map(t => String(t).toLowerCase().trim()));
+            const localActiveTitles = new Set(GAMES_DATA.map(g => (g.title || '').toLowerCase().trim()));
+            const customAdminTitles = new Set(Object.keys(window.ADMIN_CUSTOM_PRICES || {}).map(t => String(t).toLowerCase().trim()));
+            const retiredList = (window.RETIRED_CATALOG_TITLES || [])
+                .map(t => String(t).toLowerCase().trim())
+                .filter(t => !localActiveTitles.has(t) && !customAdminTitles.has(t));
+            const deletedSet = new Set([
+                ...(window.DELETED_GAMES_LIST || []).map(t => String(t).toLowerCase().trim()),
+                ...retiredList
+            ]);
             const missingLocal = GAMES_DATA
                 .filter(g => {
                     const titleNorm = (g.title || '').toLowerCase().trim();
@@ -616,6 +664,9 @@ async function loadGames() {
                 })
                 .map(g => {
                     const override = getUpdatedPriceForGame(g);
+                    const hasEditions = isGameWithEditions(g);
+                    const ultPrim = override?.price_primary_ultimate ?? (g.pricePrimaryUltimate || (hasEditions ? 92000 : null));
+                    const ultSec = override?.price_secondary_ultimate ?? (g.priceSecondaryUltimate || (hasEditions ? 60000 : null));
                     return {
                         id: g.id,
                         title: g.title,
@@ -623,8 +674,11 @@ async function loadGames() {
                         category: g.category || "accion",
                         price_primary: override?.price_primary ?? (g.pricePrimary || 0),
                         price_secondary: override?.price_secondary ?? (g.priceSecondary || null),
-                        price_primary_ps4: override?.price_primary_ps4 ?? (g.pricePrimaryPS4 || null),
-                        price_secondary_ps4: override?.price_secondary_ps4 ?? (g.priceSecondaryPS4 || null),
+                        price_primary_ps4: hasEditions ? ultPrim : (override?.price_primary_ps4 ?? (g.pricePrimaryPS4 || null)),
+                        price_secondary_ps4: hasEditions ? ultSec : (override?.price_secondary_ps4 ?? (g.priceSecondaryPS4 || null)),
+                        price_primary_ultimate: ultPrim,
+                        price_secondary_ultimate: ultSec,
+                        editions: g.editions || override?.editions || null,
                         price_ps3: null,
                         is_offer: Boolean(g.isOffer),
                         old_price_primary: g.oldPricePrimary || null,
@@ -640,11 +694,18 @@ async function loadGames() {
                 });
 
             allGames = [...dbGames.filter(g => !deletedSet.has((g.title || '').toLowerCase().trim())), ...missingLocal];
+            // Destacar GTA VI al inicio de la tabla del panel
+            allGames.sort((a, b) => {
+                const aGta = isGameWithEditions(a) ? 1 : 0;
+                const bGta = isGameWithEditions(b) ? 1 : 0;
+                return bGta - aGta;
+            });
         } else {
             allGames = dbGames;
         }
 
         // Sincronizar automáticamente en Supabase si el administrador está logueado
+        syncRetiredGamesCleanupToSupabase(sb, data || []);
         syncFixedCoversToSupabase(sb, data || []);
         syncUpdatedPricesToSupabase(sb, data || []);
         syncMissingGamesToSupabase(sb, data || []);
@@ -658,6 +719,37 @@ async function loadGames() {
         showToast("No se pudo conectar a la base de datos: " + (err.message || 'Error de red'), "error");
     } finally {
         isLoadingGames = false;
+    }
+}
+
+async function syncRetiredGamesCleanupToSupabase(sb, rawData) {
+    try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session || !session.user) return;
+        if (!Array.isArray(window.RETIRED_CATALOG_TITLES) || window.RETIRED_CATALOG_TITLES.length === 0) return;
+
+        const localActiveTitles = new Set((typeof GAMES_DATA !== 'undefined' ? GAMES_DATA : []).map(g => (g.title || '').toLowerCase().trim()));
+        const customAdminTitles = new Set(Object.keys(window.ADMIN_CUSTOM_PRICES || {}).map(t => String(t).toLowerCase().trim()));
+        const retiredSet = new Set(
+            window.RETIRED_CATALOG_TITLES
+                .map(t => String(t).toLowerCase().trim())
+                .filter(t => !localActiveTitles.has(t) && !customAdminTitles.has(t))
+        );
+
+        const idsToRemove = (rawData || [])
+            .filter(g => g && g.id && retiredSet.has((g.title || '').toLowerCase().trim()))
+            .map(g => g.id);
+
+        if (idsToRemove.length > 0) {
+            console.log(`[ZONA DIGITAL] Limpiando ${idsToRemove.length} juegos retirados del catálogo en Supabase...`);
+            const chunkSize = 50;
+            for (let i = 0; i < idsToRemove.length; i += chunkSize) {
+                const chunk = idsToRemove.slice(i, i + chunkSize);
+                await sb.from('games').delete().in('id', chunk);
+            }
+        }
+    } catch (e) {
+        console.warn("Aviso al limpiar juegos retirados en Supabase:", e);
     }
 }
 
@@ -675,14 +767,17 @@ async function syncMissingGamesToSupabase(sb, rawData) {
                 const normTitle = (g.title || '').trim().toLowerCase();
                 if (!existingTitles.has(normTitle) && !deletedSet.has(normTitle)) {
                     const override = getUpdatedPriceForGame(g);
+                    const hasEditions = isGameWithEditions(g);
+                    const ultPrim = override?.price_primary_ultimate ?? (g.pricePrimaryUltimate || (hasEditions ? 92000 : null));
+                    const ultSec = override?.price_secondary_ultimate ?? (g.priceSecondaryUltimate || (hasEditions ? 60000 : null));
                     toInsert.push({
                         title: g.title,
                         platforms: g.platforms || ["PS4", "PS5"],
                         category: g.category || "accion",
                         price_primary: override?.price_primary ?? (g.pricePrimary || 0),
                         price_secondary: override?.price_secondary ?? (g.priceSecondary || null),
-                        price_primary_ps4: override?.price_primary_ps4 ?? (g.pricePrimaryPS4 || null),
-                        price_secondary_ps4: override?.price_secondary_ps4 ?? (g.priceSecondaryPS4 || null),
+                        price_primary_ps4: hasEditions ? ultPrim : (override?.price_primary_ps4 ?? (g.pricePrimaryPS4 || null)),
+                        price_secondary_ps4: hasEditions ? ultSec : (override?.price_secondary_ps4 ?? (g.priceSecondaryPS4 || null)),
                         price_ps3: null,
                         is_offer: Boolean(g.isOffer),
                         old_price_primary: g.oldPricePrimary || null,
@@ -729,15 +824,24 @@ async function syncUpdatedPricesToSupabase(sb, rawData) {
         for (const g of rawData) {
             const override = getUpdatedPriceForGame(g);
             if (override) {
+                const dbUpdatePayload = {};
+                if (override.price_primary !== undefined) dbUpdatePayload.price_primary = override.price_primary;
+                if (override.price_secondary !== undefined) dbUpdatePayload.price_secondary = override.price_secondary;
+                if (override.price_primary_ps4 !== undefined) dbUpdatePayload.price_primary_ps4 = override.price_primary_ps4;
+                if (override.price_secondary_ps4 !== undefined) dbUpdatePayload.price_secondary_ps4 = override.price_secondary_ps4;
+                if (override.is_offer !== undefined) dbUpdatePayload.is_offer = override.is_offer;
+                if (override.old_price_primary !== undefined) dbUpdatePayload.old_price_primary = override.old_price_primary;
+                if (override.discount !== undefined) dbUpdatePayload.discount = override.discount;
+
                 const diff = 
-                    (override.price_primary !== undefined && Number(g.price_primary) !== Number(override.price_primary)) ||
-                    (override.price_secondary !== undefined && Number(g.price_secondary) !== Number(override.price_secondary)) ||
-                    (override.price_primary_ps4 !== undefined && Number(g.price_primary_ps4) !== Number(override.price_primary_ps4)) ||
-                    (override.price_secondary_ps4 !== undefined && Number(g.price_secondary_ps4) !== Number(override.price_secondary_ps4)) ||
-                    (override.is_offer !== undefined && Boolean(g.is_offer) !== Boolean(override.is_offer));
+                    (dbUpdatePayload.price_primary !== undefined && Number(g.price_primary) !== Number(dbUpdatePayload.price_primary)) ||
+                    (dbUpdatePayload.price_secondary !== undefined && Number(g.price_secondary) !== Number(dbUpdatePayload.price_secondary)) ||
+                    (dbUpdatePayload.price_primary_ps4 !== undefined && Number(g.price_primary_ps4) !== Number(dbUpdatePayload.price_primary_ps4)) ||
+                    (dbUpdatePayload.price_secondary_ps4 !== undefined && Number(g.price_secondary_ps4) !== Number(dbUpdatePayload.price_secondary_ps4)) ||
+                    (dbUpdatePayload.is_offer !== undefined && Boolean(g.is_offer) !== Boolean(dbUpdatePayload.is_offer));
 
                 if (diff) {
-                    await sb.from('games').update(override).eq('id', g.id);
+                    await sb.from('games').update(dbUpdatePayload).eq('id', g.id);
                     console.log(`[ZONA DIGITAL] Precios actualizados en Supabase para "${g.title}"`);
                 }
             }
@@ -841,19 +945,29 @@ function renderGamesTable(games) {
         if (game.platforms && game.platforms.includes('PS3') && game.price_ps3) {
             priceSummaryHtml += `<div class="price-item"><span>PS3:</span> <strong>$ ${Number(game.price_ps3).toLocaleString('es-AR')}</strong></div>`;
         }
-        
-        const hasDiffPS4 = (game.price_primary_ps4 && Number(game.price_primary_ps4) !== Number(game.price_primary)) ||
-                           (game.price_secondary_ps4 && Number(game.price_secondary_ps4) !== Number(game.price_secondary));
 
-        if (hasDiffPS4) {
-            priceSummaryHtml += `<div class="price-item"><span style="color:#60A5FA;">PS4:</span> Prim <strong>$ ${Number(game.price_primary_ps4 || game.price_primary).toLocaleString('es-AR')}</strong> / Sec $ ${Number(game.price_secondary_ps4 || game.price_secondary).toLocaleString('es-AR')}</div>`;
-            priceSummaryHtml += `<div class="price-item"><span style="color:#A78BFA;">PS5:</span> Prim <strong>$ ${Number(game.price_primary).toLocaleString('es-AR')}</strong> / Sec $ ${Number(game.price_secondary || 0).toLocaleString('es-AR')}</div>`;
+        const hasEditions = isGameWithEditions(game);
+        if (hasEditions) {
+            const stdPrim = Number(game.price_primary) || 72000;
+            const stdSec = Number(game.price_secondary) || 50000;
+            const ultPrim = Number(game.price_primary_ultimate || game.price_primary_ps4) || 92000;
+            const ultSec = Number(game.price_secondary_ultimate || game.price_secondary_ps4) || 60000;
+            priceSummaryHtml += `<div class="price-item"><span style="color:#FFE500; font-weight:700;">Standard Edition:</span> Prim <strong>$ ${stdPrim.toLocaleString('es-AR')}</strong> / Sec $ ${stdSec.toLocaleString('es-AR')}</div>`;
+            priceSummaryHtml += `<div class="price-item"><span style="color:#4EFA90; font-weight:700;">Ultimate Edition:</span> Prim <strong>$ ${ultPrim.toLocaleString('es-AR')}</strong> / Sec $ ${ultSec.toLocaleString('es-AR')}</div>`;
         } else {
-            if (game.price_primary) {
-                priceSummaryHtml += `<div class="price-item"><span>Primaria:</span> <strong>$ ${Number(game.price_primary).toLocaleString('es-AR')}</strong></div>`;
-            }
-            if (game.price_secondary) {
-                priceSummaryHtml += `<div class="price-item"><span>Secundaria:</span> $ ${Number(game.price_secondary).toLocaleString('es-AR')}</div>`;
+            const hasDiffPS4 = (game.price_primary_ps4 && Number(game.price_primary_ps4) !== Number(game.price_primary)) ||
+                               (game.price_secondary_ps4 && Number(game.price_secondary_ps4) !== Number(game.price_secondary));
+
+            if (hasDiffPS4) {
+                priceSummaryHtml += `<div class="price-item"><span style="color:#60A5FA;">PS4:</span> Prim <strong>$ ${Number(game.price_primary_ps4 || game.price_primary).toLocaleString('es-AR')}</strong> / Sec $ ${Number(game.price_secondary_ps4 || game.price_secondary).toLocaleString('es-AR')}</div>`;
+                priceSummaryHtml += `<div class="price-item"><span style="color:#A78BFA;">PS5:</span> Prim <strong>$ ${Number(game.price_primary).toLocaleString('es-AR')}</strong> / Sec $ ${Number(game.price_secondary || 0).toLocaleString('es-AR')}</div>`;
+            } else {
+                if (game.price_primary) {
+                    priceSummaryHtml += `<div class="price-item"><span>Primaria:</span> <strong>$ ${Number(game.price_primary).toLocaleString('es-AR')}</strong></div>`;
+                }
+                if (game.price_secondary) {
+                    priceSummaryHtml += `<div class="price-item"><span>Secundaria:</span> $ ${Number(game.price_secondary).toLocaleString('es-AR')}</div>`;
+                }
             }
         }
 
@@ -863,6 +977,7 @@ function renderGamesTable(games) {
 
         // Tags adicionales
         let extraTags = `<span class="pill-tag pill-cat">${escapeHtml((game.category || 'JUEGO').toUpperCase())}</span>`;
+        if (hasEditions) extraTags += `<span class="pill-tag" style="background:rgba(255,229,0,0.16); color:#FFE500; border:1px solid rgba(255,229,0,0.35);">STANDARD & ULTIMATE</span>`;
         if (game.is_offer) extraTags += `<span class="pill-tag pill-offer">OFERTA ${escapeHtml(game.discount || '')}</span>`;
         if (game.is_featured) extraTags += `<span class="pill-tag pill-featured">DESTACADO</span>`;
 
@@ -917,10 +1032,21 @@ async function changeAvailability(gameId, newStatus, selectElement) {
     selectElement.disabled = true;
 
     try {
-        const { error } = await sb
+        const game = allGames.find(g => g.id === gameId);
+        let { data: updatedRows, error } = await sb
             .from('games')
             .update({ availability: newStatus, updated_at: new Date().toISOString() })
-            .eq('id', gameId);
+            .eq('id', gameId)
+            .select('id');
+
+        if (!error && (!updatedRows || updatedRows.length === 0) && game && game.title) {
+            const resByTitle = await sb
+                .from('games')
+                .update({ availability: newStatus, updated_at: new Date().toISOString() })
+                .ilike('title', game.title)
+                .select('id');
+            error = resByTitle.error;
+        }
 
         if (error) {
             showToast("No se pudo actualizar el estado: " + error.message, "error");
@@ -929,7 +1055,6 @@ async function changeAvailability(gameId, newStatus, selectElement) {
         }
 
         // Actualizar datos en memoria
-        const game = allGames.find(g => g.id === gameId);
         if (game) game.availability = newStatus;
 
         selectElement.className = `availability-select ${newStatus}`;
@@ -954,11 +1079,13 @@ function openGameModal(gameId = null) {
 
     const titleEl = document.getElementById('modalFormTitle');
     const idInput = document.getElementById('formGameId');
+    let editingEditionsGame = false;
 
     if (gameId) {
         const game = allGames.find(g => g.id === gameId);
         if (!game) return;
 
+        editingEditionsGame = isGameWithEditions(game);
         titleEl.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Editar: ${escapeHtml(game.title)}`;
         idInput.value = game.id;
 
@@ -977,8 +1104,23 @@ function openGameModal(gameId = null) {
         // Precios
         document.getElementById('formPricePrimary').value = game.price_primary || '';
         document.getElementById('formPriceSecondary').value = game.price_secondary || '';
-        document.getElementById('formPricePrimaryPS4').value = game.price_primary_ps4 || '';
-        document.getElementById('formPriceSecondaryPS4').value = game.price_secondary_ps4 || '';
+        if (editingEditionsGame) {
+            const ultPrim = game.price_primary_ultimate || game.price_primary_ps4 || 92000;
+            const ultSec = game.price_secondary_ultimate || game.price_secondary_ps4 || 60000;
+            const ultPrimInput = document.getElementById('formPricePrimaryUltimate');
+            const ultSecInput = document.getElementById('formPriceSecondaryUltimate');
+            if (ultPrimInput) ultPrimInput.value = ultPrim;
+            if (ultSecInput) ultSecInput.value = ultSec;
+            document.getElementById('formPricePrimaryPS4').value = '';
+            document.getElementById('formPriceSecondaryPS4').value = '';
+        } else {
+            document.getElementById('formPricePrimaryPS4').value = game.price_primary_ps4 || '';
+            document.getElementById('formPriceSecondaryPS4').value = game.price_secondary_ps4 || '';
+            const ultPrimInput = document.getElementById('formPricePrimaryUltimate');
+            const ultSecInput = document.getElementById('formPriceSecondaryUltimate');
+            if (ultPrimInput) ultPrimInput.value = '';
+            if (ultSecInput) ultSecInput.value = '';
+        }
         document.getElementById('formPricePS3').value = game.price_ps3 || '';
 
         // Oferta
@@ -1015,7 +1157,7 @@ function openGameModal(gameId = null) {
         updateCoverPreview('');
     }
 
-    updatePriceInputsVisibility();
+    updatePriceInputsVisibility(editingEditionsGame);
     document.getElementById('gameEditModal').classList.add('active');
 }
 
@@ -1039,11 +1181,38 @@ function togglePlatformChip(input) {
     }
 }
 
-function updatePriceInputsVisibility() {
+function updatePriceInputsVisibility(forceEditionsMode = null) {
     const ps3Checked = document.getElementById('checkPS3').checked;
     const ps3Section = document.getElementById('pricesPS3Section');
     if (ps3Section) {
         ps3Section.style.display = ps3Checked ? 'block' : 'none';
+    }
+
+    const titleVal = (document.getElementById('formTitle')?.value || '').toLowerCase().trim();
+    const isEditions = forceEditionsMode !== null
+        ? forceEditionsMode
+        : (titleVal === 'grand theft auto vi' || titleVal === 'gta 6' || titleVal === 'gta vi');
+
+    const ultSection = document.getElementById('pricesUltimateEditionSection');
+    const ps4Section = document.getElementById('pricesPS4Section');
+    const lblPrim = document.getElementById('labelPricePrimary');
+    const lblSec = document.getElementById('labelPriceSecondary');
+
+    if (ultSection) {
+        ultSection.style.display = isEditions ? 'grid' : 'none';
+    }
+    if (ps4Section) {
+        ps4Section.style.display = isEditions ? 'none' : '';
+    }
+    if (lblPrim) {
+        lblPrim.innerHTML = isEditions
+            ? '<i class="fa-solid fa-crown" style="color:var(--color-primary);"></i> Standard Edition - Primaria ($)'
+            : 'Precio Primaria (PS5) ($)';
+    }
+    if (lblSec) {
+        lblSec.innerHTML = isEditions
+            ? '<i class="fa-solid fa-user" style="color:var(--color-primary);"></i> Standard Edition - Secundaria ($)'
+            : 'Precio Secundaria (PS5) ($)';
     }
 }
 
@@ -1172,6 +1341,16 @@ async function saveGame(e) {
             imageUrl = 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80';
         }
 
+        // Detectar si es GTA VI / juego con dos ediciones (Standard Edition y Ultimate Edition)
+        const normSavedTitle = title.toLowerCase().trim();
+        const isEditionsGame = normSavedTitle === 'grand theft auto vi' || normSavedTitle === 'gta 6' || normSavedTitle === 'gta vi' || Number(gameId) === 1000;
+        const ultPrimVal = isEditionsGame
+            ? (parseNumber(document.getElementById('formPricePrimaryUltimate')?.value) || 92000)
+            : null;
+        const ultSecVal = isEditionsGame
+            ? (parseNumber(document.getElementById('formPriceSecondaryUltimate')?.value) || 60000)
+            : null;
+
         // Construcción del objeto de juego
         const gamePayload = {
             title: title,
@@ -1180,8 +1359,8 @@ async function saveGame(e) {
             availability: availability,
             price_primary: parseNumber(document.getElementById('formPricePrimary').value) || 0,
             price_secondary: parseNumber(document.getElementById('formPriceSecondary').value),
-            price_primary_ps4: parseNumber(document.getElementById('formPricePrimaryPS4').value),
-            price_secondary_ps4: parseNumber(document.getElementById('formPriceSecondaryPS4').value),
+            price_primary_ps4: isEditionsGame ? ultPrimVal : parseNumber(document.getElementById('formPricePrimaryPS4').value),
+            price_secondary_ps4: isEditionsGame ? ultSecVal : parseNumber(document.getElementById('formPriceSecondaryPS4').value),
             price_ps3: parseNumber(document.getElementById('formPricePS3').value),
             is_offer: document.getElementById('formIsOffer').checked,
             old_price_primary: parseNumber(document.getElementById('formOldPricePrimary').value),
@@ -1198,12 +1377,27 @@ async function saveGame(e) {
         let resultError = null;
 
         if (gameId) {
-            // Actualizar juego existente
-            const { error } = await sb
+            // Actualizar juego existente por ID, o por título / inserción si aún no se había sincronizado su fila
+            const { data: updatedById, error } = await sb
                 .from('games')
                 .update(gamePayload)
-                .eq('id', gameId);
+                .eq('id', gameId)
+                .select('id');
             resultError = error;
+
+            if (!resultError && (!updatedById || updatedById.length === 0)) {
+                const { data: updatedByTitle, error: titleErr } = await sb
+                    .from('games')
+                    .update(gamePayload)
+                    .ilike('title', title)
+                    .select('id');
+                if (!titleErr && (!updatedByTitle || updatedByTitle.length === 0)) {
+                    const { error: insErr } = await sb.from('games').insert([gamePayload]);
+                    resultError = insErr;
+                } else {
+                    resultError = titleErr;
+                }
+            }
         } else {
             // Insertar nuevo juego
             const { error } = await sb
@@ -1231,18 +1425,35 @@ async function saveGame(e) {
                 }
             }
 
-            // Guardar precios en ADMIN_CUSTOM_PRICES para que el panel mantenga el precio modificado
+            // Guardar precios en ADMIN_CUSTOM_PRICES para que el panel y la web mantengan los precios modificados
             if (!window.ADMIN_CUSTOM_PRICES) window.ADMIN_CUSTOM_PRICES = {};
             const titleKey = (gamePayload.title || '').toLowerCase().trim();
-            window.ADMIN_CUSTOM_PRICES[titleKey] = {
+            const customPriceEntry = {
                 price_primary: gamePayload.price_primary,
                 price_secondary: gamePayload.price_secondary,
-                price_primary_ps4: gamePayload.price_primary_ps4,
-                price_secondary_ps4: gamePayload.price_secondary_ps4,
+                price_primary_ps4: isEditionsGame ? null : gamePayload.price_primary_ps4,
+                price_secondary_ps4: isEditionsGame ? null : gamePayload.price_secondary_ps4,
                 is_offer: gamePayload.is_offer,
                 old_price_primary: gamePayload.old_price_primary,
                 discount: gamePayload.discount
             };
+            if (isEditionsGame) {
+                customPriceEntry.price_primary_ultimate = ultPrimVal;
+                customPriceEntry.price_secondary_ultimate = ultSecVal;
+                customPriceEntry.editions = {
+                    standard: {
+                        name: 'Standard Edition',
+                        pricePrimary: gamePayload.price_primary,
+                        priceSecondary: gamePayload.price_secondary
+                    },
+                    ultimate: {
+                        name: 'Ultimate Edition',
+                        pricePrimary: ultPrimVal,
+                        priceSecondary: ultSecVal
+                    }
+                };
+            }
+            window.ADMIN_CUSTOM_PRICES[titleKey] = customPriceEntry;
             try { localStorage.setItem('zd_admin_prices', JSON.stringify(window.ADMIN_CUSTOM_PRICES)); } catch(e) {}
 
             try {

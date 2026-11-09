@@ -611,15 +611,27 @@
                             <span>Precios por Plataforma y Cuenta</span>
                         </h4>
 
-                        <!-- Precios PS5 / General -->
+                        <!-- Precios PS5 / General (o Standard Edition en GTA VI) -->
                         <div id="pricesPS5Section" class="form-grid-2" style="margin-bottom: 12px;">
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label class="form-label" for="formPricePrimary">Precio Primaria (PS5) ($)</label>
+                                <label class="form-label" id="labelPricePrimary" for="formPricePrimary">Precio Primaria (PS5) ($)</label>
                                 <input type="number" id="formPricePrimary" class="form-control" placeholder="Ej: 29500" min="0">
                             </div>
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label class="form-label" for="formPriceSecondary">Precio Secundaria (PS5) ($)</label>
+                                <label class="form-label" id="labelPriceSecondary" for="formPriceSecondary">Precio Secundaria (PS5) ($)</label>
                                 <input type="number" id="formPriceSecondary" class="form-control" placeholder="Ej: 18500 (vacío si no tiene)" min="0">
+                            </div>
+                        </div>
+
+                        <!-- Precios Ultimate Edition (visible para GTA VI / juegos con dos ediciones) -->
+                        <div id="pricesUltimateEditionSection" class="form-grid-2" style="margin-bottom: 12px; display: none; padding-top: 10px; border-top: 1px dashed rgba(255,229,0,0.25);">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="formPricePrimaryUltimate" style="color: var(--color-primary);"><i class="fa-solid fa-star"></i> Ultimate Edition - Primaria ($)</label>
+                                <input type="number" id="formPricePrimaryUltimate" class="form-control" placeholder="Ej: 92000" min="0">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label" for="formPriceSecondaryUltimate" style="color: var(--color-primary);"><i class="fa-solid fa-star"></i> Ultimate Edition - Secundaria ($)</label>
+                                <input type="number" id="formPriceSecondaryUltimate" class="form-control" placeholder="Ej: 60000" min="0">
                             </div>
                         </div>
 
@@ -770,9 +782,9 @@
     <script src="../supabase-config.js"></script>
     
     <!-- Datos locales actuales para permitir la importación automática -->
-    <script src="../games.js"></script>
+    <script src="../games.js?v=4.0"></script>
     
     <!-- Lógica del Panel de Administración -->
-    <script src="admin.js?v=5"></script>
+    <script src="admin.js?v=7.0"></script>
 </body>
 </html>

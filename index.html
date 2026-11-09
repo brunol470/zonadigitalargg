@@ -777,6 +777,22 @@
                         Descripción detallada del juego...
                     </p>
 
+                    <!-- Selector Interactivo de Edición (Standard vs Ultimate para juegos con múltiples ediciones como GTA 6) -->
+                    <div class="account-selector-box" id="modalEditionSelectorBox" style="display: none; margin-bottom: 14px;">
+                        <div class="selector-title">
+                            <span>Elegí la edición:</span>
+                            <i class="fa-solid fa-star" style="color: var(--color-primary);"></i>
+                        </div>
+                        <div class="account-tabs">
+                            <button type="button" class="account-tab active" id="tabEditionStandard" onclick="selectModalEdition('standard')">
+                                <i class="fa-solid fa-gamepad"></i> Standard Edition
+                            </button>
+                            <button type="button" class="account-tab" id="tabEditionUltimate" onclick="selectModalEdition('ultimate')">
+                                <i class="fa-solid fa-gem"></i> Ultimate Edition
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Selector Interactivo de Cuenta (Primaria vs Secundaria) -->
                     <div class="account-selector-box">
                         <div class="selector-title">
@@ -848,6 +864,19 @@
                             <span class="checkout-config-label"><i class="fa-brands fa-playstation"></i> Plataforma:</span>
                             <div class="checkout-pills" id="checkoutPlatformPills">
                                 <!-- Generado por JS -->
+                            </div>
+                        </div>
+
+                        <!-- Selector interactivo de Edición (Standard vs Ultimate) -->
+                        <div class="checkout-config-row" id="checkoutEditionRow" style="display: none;">
+                            <span class="checkout-config-label"><i class="fa-solid fa-gem"></i> Edición:</span>
+                            <div class="checkout-account-pills" id="checkoutEditionPills">
+                                <button type="button" class="checkout-acc-pill active" id="chkEditionStandard" onclick="setCheckoutEdition('standard')">
+                                    Standard Edition
+                                </button>
+                                <button type="button" class="checkout-acc-pill" id="chkEditionUltimate" onclick="setCheckoutEdition('ultimate')">
+                                    Ultimate Edition
+                                </button>
                             </div>
                         </div>
 
@@ -1015,8 +1044,8 @@
     <!-- Configuración de Supabase -->
     <script src="supabase-config.js"></script>
     <!-- Catálogo base local -->
-    <script src="games.js?v=3.0"></script>
+    <script src="games.js?v=4.0"></script>
     <!-- Lógica de la tienda y sincronización en vivo -->
-    <script src="app.js?v=8.3"></script>
+    <script src="app.js?v=9.0"></script>
 </body>
 </html>

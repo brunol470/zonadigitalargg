@@ -919,6 +919,18 @@ body {
     color: var(--status-upcoming);
 }
 
+#optSinStockMostrar.selected {
+    border-color: #FDE047;
+    background: rgba(253, 224, 71, 0.14);
+    color: #FDE047;
+}
+
+#optSinStockOcultar.selected {
+    border-color: #EF4444;
+    background: rgba(239, 68, 68, 0.18);
+    color: #FCA5A5;
+}
+
 /* Caja de previsualización y subida de imagen */
 .image-upload-box {
     display: flex;
@@ -1467,5 +1479,10 @@ body {
         margin-left: 0;
         text-align: center;
         justify-content: center;
+    }
+
+    .admin-edition-row {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
     }
 }

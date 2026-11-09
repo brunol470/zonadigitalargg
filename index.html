@@ -40,7 +40,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <!-- Hoja de Estilos -->
-    <link rel="stylesheet" href="style.css?v=3.3">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="style.css?v=11.0">
 </head>
 <body>
 
@@ -777,13 +780,13 @@
                         Descripción detallada del juego...
                     </p>
 
-                    <!-- Selector Interactivo de Edición (Standard vs Ultimate para juegos con múltiples ediciones como GTA 6) -->
+                    <!-- Selector Interactivo de Edición (soporta 2, 3 o más ediciones configuradas desde el Admin) -->
                     <div class="account-selector-box" id="modalEditionSelectorBox" style="display: none; margin-bottom: 14px;">
                         <div class="selector-title">
                             <span>Elegí la edición:</span>
                             <i class="fa-solid fa-star" style="color: var(--color-primary);"></i>
                         </div>
-                        <div class="account-tabs">
+                        <div class="account-tabs" id="modalEditionTabs" style="flex-wrap: wrap;">
                             <button type="button" class="account-tab active" id="tabEditionStandard" onclick="selectModalEdition('standard')">
                                 <i class="fa-solid fa-gamepad"></i> Standard Edition
                             </button>
@@ -1044,8 +1047,8 @@
     <!-- Configuración de Supabase -->
     <script src="supabase-config.js"></script>
     <!-- Catálogo base local -->
-    <script src="games.js?v=5.0"></script>
+    <script src="games.js?v=11.0"></script>
     <!-- Lógica de la tienda y sincronización en vivo -->
-    <script src="app.js?v=10.0"></script>
+    <script src="app.js?v=11.0"></script>
 </body>
 </html>

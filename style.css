@@ -2394,6 +2394,7 @@ img {
 
 .checkout-pills, .checkout-account-pills {
     display: flex;
+    flex-wrap: wrap;
     gap: 6px;
 }
 

@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Administración | Zona Digitalarg</title>
     <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     
     <!-- Google Fonts: Outfit & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +18,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <!-- Hoja de estilos del panel -->
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="admin.css?v=11.0">
 </head>
 <body>
 
@@ -602,16 +605,60 @@
                                 <span class="avail-desc">Estado de preventa / lanzamiento</span>
                             </label>
                         </div>
+
+                        <!-- Configuración adicional cuando se selecciona «Sin Stock» -->
+                        <div id="sinStockVisibilityBox" style="display: none; margin-top: 12px; padding: 14px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: var(--radius-md);">
+                            <label class="form-label" style="color: #FCA5A5; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-eye"></i>
+                                <span>Comportamiento en la tienda cuando está «Sin Stock»:</span>
+                            </label>
+                            <div class="availability-radios" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                                <label class="avail-card-option selected" id="optSinStockMostrar" style="padding: 10px 12px;">
+                                    <input type="radio" name="formSinStockVisibility" value="mostrar" checked onchange="updateSinStockVisibilityUi()">
+                                    <span class="avail-title" style="color: #FDE047; font-size: 0.88rem;"><i class="fa-solid fa-eye"></i> Mostrar en el catálogo</span>
+                                    <span class="avail-desc" style="font-size: 0.76rem;">Sigue apareciendo en la página con la etiqueta «Sin stock» (compra deshabilitada)</span>
+                                </label>
+                                <label class="avail-card-option" id="optSinStockOcultar" style="padding: 10px 12px;">
+                                    <input type="radio" name="formSinStockVisibility" value="ocultar" onchange="updateSinStockVisibilityUi()">
+                                    <span class="avail-title" style="color: #F87171; font-size: 0.88rem;"><i class="fa-solid fa-eye-slash"></i> No mostrar en el catálogo</span>
+                                    <span class="avail-desc" style="font-size: 0.76rem;">Se oculta del catálogo público, pero sigue en la administración para republicarlo</span>
+                                </label>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- 4. Precios por Plataforma y Tipo de Cuenta -->
                     <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
-                        <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                            <i class="fa-solid fa-tags" style="color: var(--color-primary);"></i>
-                            <span>Precios por Plataforma y Cuenta</span>
-                        </h4>
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+                            <h4 style="font-family: var(--font-heading); font-size: 0.95rem; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-tags" style="color: var(--color-primary);"></i>
+                                <span>Precios por Plataforma, Cuenta y Ediciones</span>
+                            </h4>
+                            <label id="editionsToggleLabel" style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; background: rgba(255, 229, 0, 0.1); border: 1px solid rgba(255, 229, 0, 0.35); padding: 6px 12px; border-radius: 999px; font-size: 0.82rem; font-weight: 700; color: var(--color-primary);">
+                                <input type="checkbox" id="formHasEditions" style="accent-color: var(--color-primary); width: 15px; height: 15px;" onchange="toggleEditionsMode(this.checked)">
+                                <span><i class="fa-solid fa-layer-group"></i> Activar ediciones para este juego</span>
+                            </label>
+                        </div>
 
-                        <!-- Precios PS5 / General (o Standard Edition en GTA VI) -->
+                        <!-- Gestor Dinámico de Ediciones (Standard, Deluxe, Ultimate, etc.) -->
+                        <div id="editionsManagerSection" style="display: none; margin-bottom: 14px; padding: 14px; background: rgba(255, 229, 0, 0.04); border: 1px dashed rgba(255, 229, 0, 0.35); border-radius: var(--radius-md);">
+                            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                                <div>
+                                    <div style="font-weight: 800; font-size: 0.88rem; color: var(--color-primary);">
+                                        <i class="fa-solid fa-layer-group"></i> Ediciones del Juego
+                                    </div>
+                                    <div style="font-size: 0.76rem; color: var(--text-muted);">
+                                        Agregá, renombrá o quitá ediciones y definí el precio de cuenta Primaria y Secundaria de cada una.
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-primary" onclick="addAdminEditionRow()" style="width: auto; padding: 7px 14px; font-size: 0.8rem;">
+                                    <i class="fa-solid fa-plus"></i> Agregar Edición
+                                </button>
+                            </div>
+                            <div id="editionsRowsContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                        </div>
+
+                        <!-- Precios PS5 / General (cuando no usa múltiples ediciones) -->
                         <div id="pricesPS5Section" class="form-grid-2" style="margin-bottom: 12px;">
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label class="form-label" id="labelPricePrimary" for="formPricePrimary">Precio Primaria (PS5) ($)</label>
@@ -782,9 +829,9 @@
     <script src="../supabase-config.js"></script>
     
     <!-- Datos locales actuales para permitir la importación automática -->
-    <script src="../games.js?v=5.0"></script>
+    <script src="../games.js?v=11.0"></script>
     
     <!-- Lógica del Panel de Administración -->
-    <script src="admin.js?v=8.0"></script>
+    <script src="admin.js?v=11.0"></script>
 </body>
 </html>

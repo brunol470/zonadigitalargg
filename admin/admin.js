@@ -260,18 +260,8 @@ function getUpdatedPriceForGame(game) {
     if (id === 23 || t.includes('assetto corsa')) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
-    // Ofertas desactivadas solicitadas por el usuario
-    if (id === 1 || t.includes('modern warfare iii') || t.includes('modern warfare 3')) {
-        return { is_offer: false, old_price_primary: null, discount: null };
-    }
-    if (id === 2 || t.includes('fc 25')) {
-        return { is_offer: false, old_price_primary: null, discount: null };
-    }
-    if (t.includes('trilogy') && t.includes('grand theft auto')) {
-        return { is_offer: false, old_price_primary: null, discount: null };
-    }
     if (id === 6 || id === 4 || (t.includes('grand theft auto v') && !t.includes('trilogy'))) {
-        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 17500, price_secondary_ps4: 9500, is_offer: false, old_price_primary: null, discount: null };
+        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 17500, price_secondary_ps4: 9500 };
     }
     if (id === 7 || (t.includes('god of war') && (t.includes('ragnarök') || t.includes('ragnarok')))) {
         return { price_primary: 25000, price_secondary: 17500, price_primary_ps4: 19000, price_secondary_ps4: 11000 };
@@ -292,16 +282,13 @@ function getUpdatedPriceForGame(game) {
         return { price_primary: 9000, price_secondary: 8200, price_primary_ps4: 9000, price_secondary_ps4: 8200 };
     }
     if (id === 12 || id === 10 || (t.includes('resident evil 4') && !t.includes('raccoon'))) {
-        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500, is_offer: false, old_price_primary: null, discount: null };
+        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
     if (id === 9 || id === 7 || (t.includes('mortal kombat 1') && !t.includes('xl') && !t.includes('definitive'))) {
-        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500, is_offer: false, old_price_primary: null, discount: null };
+        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
     if (id === 13 || id === 11 || t.includes('hogwarts')) {
-        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500, is_offer: false, old_price_primary: null, discount: null };
-    }
-    if (id === 14 || id === 12 || (t.includes('red dead redemption 2') && !t.includes('lote'))) {
-        return { is_offer: false, old_price_primary: null, discount: null };
+        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
     // 14 Nuevos juegos
     if (t.includes('arc raiders')) {
@@ -346,12 +333,12 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('modern warfare 4') || t.includes('mw4')) {
         return { price_primary: 35000, price_secondary: 20000, price_primary_ps4: 35000, price_secondary_ps4: 20000 };
     }
-    // 27 Nuevos juegos (con las nuevas 7 ofertas activadas)
+    // 27 Nuevos juegos
     if (t.includes('dirt rally')) {
-        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500, is_offer: true, old_price_primary: 22000, discount: "-25%" };
+        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500 };
     }
     if (t.includes('until dawn')) {
-        return { price_primary: 7500, price_secondary: 5900, price_primary_ps4: 7500, price_secondary_ps4: 5900, is_offer: true, old_price_primary: 10500, discount: "-28%" };
+        return { price_primary: 7500, price_secondary: 5900, price_primary_ps4: 7500, price_secondary_ps4: 5900 };
     }
     if (t.includes('watch dogs') && !t.includes('watch dogs 2') && !t.includes('legion')) {
         return { price_primary: 7500, price_secondary: 6000, price_primary_ps4: 7500, price_secondary_ps4: 6000 };
@@ -360,16 +347,16 @@ function getUpdatedPriceForGame(game) {
         return { price_primary: 20000, price_secondary: 10000 };
     }
     if (t.includes('infamous')) {
-        return { price_primary: 7500, price_secondary: 6000, price_primary_ps4: 7500, price_secondary_ps4: 6000, is_offer: true, old_price_primary: 11000, discount: "-32%" };
+        return { price_primary: 7500, price_secondary: 6000, price_primary_ps4: 7500, price_secondary_ps4: 6000 };
     }
     if (t.includes('detroit')) {
-        return { price_primary: 7500, price_secondary: 6000, price_primary_ps4: 7500, price_secondary_ps4: 6000, is_offer: true, old_price_primary: 11000, discount: "-32%" };
+        return { price_primary: 7500, price_secondary: 6000, price_primary_ps4: 7500, price_secondary_ps4: 6000 };
     }
     if (t.includes('forbidden west')) {
         return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500 };
     }
     if (t.includes('cyberpunk')) {
-        return { price_primary: 19000, price_secondary: 10000, price_primary_ps4: 19000, price_secondary_ps4: 10000, is_offer: true, old_price_primary: 25000, discount: "-24%" };
+        return { price_primary: 19000, price_secondary: 10000, price_primary_ps4: 19000, price_secondary_ps4: 10000 };
     }
     if (t.includes('wwe 2k26')) {
         return { price_primary: 28000, price_secondary: 17000, price_primary_ps4: 28000, price_secondary_ps4: 17000 };
@@ -384,7 +371,7 @@ function getUpdatedPriceForGame(game) {
         return { price_primary: 7800, price_secondary: 6000, price_primary_ps4: 7800, price_secondary_ps4: 6000 };
     }
     if (t.includes('storm 4')) {
-        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500, is_offer: true, old_price_primary: 22000, discount: "-25%" };
+        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500 };
     }
     if (t.includes('battlefront 2') || t.includes('battlefront ii')) {
         return { price_primary: 7800, price_secondary: 6000, price_primary_ps4: 7800, price_secondary_ps4: 6000 };
@@ -399,7 +386,7 @@ function getUpdatedPriceForGame(game) {
         return { price_primary: 40000, price_secondary: 28000, price_primary_ps4: 40000, price_secondary_ps4: 28000 };
     }
     if ((t.includes('last of us') || t.includes('tlou')) && (t.includes('parte 2') || t.includes('part 2') || t.includes('part ii'))) {
-        return { price_primary: 22000, price_secondary: 16000, price_primary_ps4: 22000, price_secondary_ps4: 16000, is_offer: true, old_price_primary: 29500, discount: "-25%" };
+        return { price_primary: 22000, price_secondary: 16000, price_primary_ps4: 22000, price_secondary_ps4: 16000 };
     }
     if (t.includes('outlast trinity')) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
@@ -695,8 +682,18 @@ async function loadGames() {
         }
 
         const validDbGames = [];
+        let seenPsPlusConfig = false;
+        let seenAdminOverrides = false;
+        let seenDeletedConfig = false;
+        let seenOffersShowcase = false;
+        let adminOverridesUpdatedAt = 0;
+        let offersShowcaseUpdatedAt = 0;
+
+        // PASADA 1: Procesar filas de configuración (tomando siempre la más reciente por orden id DESC)
         (data || []).forEach(g => {
             if (g.title === '__ps_plus_plans__' || g.category === 'psplus_config') {
+                if (seenPsPlusConfig) return;
+                seenPsPlusConfig = true;
                 try {
                     const customPlans = JSON.parse(g.description);
                     if (customPlans && typeof PS_PLUS_PLANS !== 'undefined') {
@@ -716,31 +713,48 @@ async function loadGames() {
                     }
                 } catch(e) {}
             } else if (g.title === '__admin_overrides__' || g.category === 'prices_config') {
+                if (seenAdminOverrides) return;
+                seenAdminOverrides = true;
+                adminOverridesUpdatedAt = g.updated_at ? new Date(g.updated_at).getTime() : 0;
                 try {
                     const customPrices = JSON.parse(g.description);
                     if (customPrices && typeof customPrices === 'object') {
-                        window.ADMIN_CUSTOM_PRICES = customPrices;
-                        try { localStorage.setItem('zd_admin_prices', g.description); } catch(e) {}
+                        window.ADMIN_CUSTOM_PRICES = {
+                            ...(window.ADMIN_CUSTOM_PRICES || {}),
+                            ...customPrices
+                        };
+                        try { localStorage.setItem('zd_admin_prices', JSON.stringify(window.ADMIN_CUSTOM_PRICES)); } catch(e) {}
                     }
                 } catch(e) {}
             } else if (g.title === '__deleted_games__' || g.category === 'deleted_config') {
+                if (seenDeletedConfig) return;
+                seenDeletedConfig = true;
                 try {
                     const deleted = JSON.parse(g.description);
                     if (Array.isArray(deleted)) {
-                        window.DELETED_GAMES_LIST = deleted;
-                        try { localStorage.setItem('zd_deleted_games', g.description); } catch(e) {}
+                        const mergedSet = new Set([...(window.DELETED_GAMES_LIST || []), ...deleted]);
+                        window.DELETED_GAMES_LIST = Array.from(mergedSet);
+                        try { localStorage.setItem('zd_deleted_games', JSON.stringify(window.DELETED_GAMES_LIST)); } catch(e) {}
                     }
                 } catch(e) {}
             } else if (g.title === '__offers_showcase__' || g.category === 'offers_config') {
+                if (seenOffersShowcase) return;
+                seenOffersShowcase = true;
+                offersShowcaseUpdatedAt = g.updated_at ? new Date(g.updated_at).getTime() : 0;
                 try {
                     const customOffers = JSON.parse(g.description);
                     if (Array.isArray(customOffers)) {
                         OFERTAS_SHOWCASE_DATA = customOffers;
                         try {
-                            localStorage.setItem('zd_offers_showcase', g.description);
+                            localStorage.setItem('zd_offers_showcase', JSON.stringify(OFERTAS_SHOWCASE_DATA));
                         } catch(e) {}
                     }
                 } catch(e) {}
+            } else if (g.category === 'deleted_game' || g.availability === 'eliminado') {
+                if (!Array.isArray(window.DELETED_GAMES_LIST)) window.DELETED_GAMES_LIST = [];
+                if (g.title && !window.DELETED_GAMES_LIST.some(t => normalizeCatalogKey(t) === normalizeCatalogKey(g.title))) {
+                    window.DELETED_GAMES_LIST.push(g.title);
+                }
             } else {
                 if (!isEspanolLatinoTitle(g.title)) {
                     validDbGames.push(g);
@@ -748,26 +762,86 @@ async function loadGames() {
             }
         });
 
+        // Si __offers_showcase__ se actualizó después de __admin_overrides__, respetar is_offer: true de los juegos del carrusel
+        if (offersShowcaseUpdatedAt > adminOverridesUpdatedAt && Array.isArray(OFERTAS_SHOWCASE_DATA) && window.ADMIN_CUSTOM_PRICES) {
+            OFERTAS_SHOWCASE_DATA.forEach(sc => {
+                if (!sc || !sc.title) return;
+                const tk = sc.title.toLowerCase().trim();
+                const nk = normalizeCatalogKey(sc.title);
+                [tk, nk].forEach(k => {
+                    if (k && window.ADMIN_CUSTOM_PRICES[k] && window.ADMIN_CUSTOM_PRICES[k].deleted !== true && window.ADMIN_CUSTOM_PRICES[k].is_offer === false) {
+                        window.ADMIN_CUSTOM_PRICES[k].is_offer = true;
+                        window.ADMIN_CUSTOM_PRICES[k].old_price_primary = sc.oldPrice || window.ADMIN_CUSTOM_PRICES[k].old_price_primary || null;
+                        window.ADMIN_CUSTOM_PRICES[k].discount = sc.discount || window.ADMIN_CUSTOM_PRICES[k].discount || null;
+                    }
+                });
+            });
+        }
+
+        // Incorporar juegos marcados con deleted:true en ADMIN_CUSTOM_PRICES dentro de DELETED_GAMES_LIST
+        if (window.ADMIN_CUSTOM_PRICES && typeof window.ADMIN_CUSTOM_PRICES === 'object') {
+            if (!Array.isArray(window.DELETED_GAMES_LIST)) window.DELETED_GAMES_LIST = [];
+            Object.entries(window.ADMIN_CUSTOM_PRICES).forEach(([k, val]) => {
+                if (val && val.deleted === true) {
+                    const nk = normalizeCatalogKey(k);
+                    if (nk && !window.DELETED_GAMES_LIST.some(t => normalizeCatalogKey(t) === nk)) {
+                        window.DELETED_GAMES_LIST.push(k);
+                    }
+                }
+            });
+        }
+
+        const showcaseKeys = new Set(
+            (Array.isArray(OFERTAS_SHOWCASE_DATA) ? OFERTAS_SHOWCASE_DATA : []).map(c => normalizeCatalogKey(c.title))
+        );
+        const showcaseIds = new Set(
+            (Array.isArray(OFERTAS_SHOWCASE_DATA) ? OFERTAS_SHOWCASE_DATA : []).map(c => String(c.id))
+        );
+        const legacyStaleOfferIds = new Set([296, 76, 71, 66, 64, 63, 60, 59, 35, 30]);
+
         const dbGames = validDbGames.map(g => {
             const resolvedTitle = resolveGameTitle(g.title, g.id);
             const resolvedImg = resolveGameCover(g.image, resolvedTitle || g.title, g.id);
             const overridePrice = getUpdatedPriceForGame({ ...g, title: resolvedTitle });
-            return {
+            const merged = {
                 ...g,
                 rawTitle: g.title || resolvedTitle,
                 title: resolvedTitle,
                 image: resolvedImg,
                 ...(overridePrice || {})
             };
+            // Reconciliar ofertas antiguas quitadas del carrusel que habían quedado con is_offer:true en la tabla
+            if (
+                legacyStaleOfferIds.has(Number(g.id)) &&
+                (!overridePrice || overridePrice.is_offer !== true) &&
+                !showcaseIds.has(String(g.id)) &&
+                !showcaseKeys.has(normalizeCatalogKey(resolvedTitle))
+            ) {
+                merged.is_offer = false;
+                merged.old_price_primary = null;
+                merged.discount = null;
+            }
+            return merged;
         });
+
+        // Limpiar del carrusel cualquier juego eliminado o que tenga is_offer explícitamente desactivado en overrides
+        const deletedNormSetGlobal = new Set([
+            ...(window.DELETED_GAMES_LIST || []).map(t => normalizeCatalogKey(t)),
+            ...(window.RETIRED_CATALOG_TITLES || []).map(t => normalizeCatalogKey(t))
+        ]);
+        if (Array.isArray(OFERTAS_SHOWCASE_DATA)) {
+            OFERTAS_SHOWCASE_DATA = OFERTAS_SHOWCASE_DATA.filter(c => {
+                const nk = normalizeCatalogKey(c.title);
+                if (deletedNormSetGlobal.has(nk)) return false;
+                return true;
+            });
+        }
 
         // Fusionar con los juegos locales de games.js (excluyendo juegos eliminados y «Español Latino»)
         if (typeof GAMES_DATA !== 'undefined' && Array.isArray(GAMES_DATA)) {
-            const deletedNormSet = new Set([
-                ...(window.DELETED_GAMES_LIST || []).map(t => normalizeCatalogKey(t)),
-                ...(window.RETIRED_CATALOG_TITLES || []).map(t => normalizeCatalogKey(t))
-            ]);
+            const deletedNormSet = deletedNormSetGlobal;
             const filteredDbGames = dbGames.filter(g => {
+                if (g.deleted === true || g.availability === 'eliminado') return false;
                 if (isEspanolLatinoTitle(g.title) || isEspanolLatinoTitle(g.rawTitle)) return false;
                 if (deletedNormSet.has(normalizeCatalogKey(g.title)) || deletedNormSet.has(normalizeCatalogKey(g.rawTitle))) return false;
                 return true;
@@ -782,6 +856,8 @@ async function loadGames() {
                 .filter(g => {
                     if (isEspanolLatinoTitle(g.title)) return false;
                     const nk = normalizeCatalogKey(g.title);
+                    const ov = getUpdatedPriceForGame(g);
+                    if (ov && ov.deleted === true) return false;
                     return !dbKeys.has(nk) && !deletedNormSet.has(nk);
                 })
                 .map(g => {
@@ -789,6 +865,7 @@ async function loadGames() {
                     const hasEditions = isGameWithEditions(g);
                     const ultPrim = override?.price_primary_ultimate ?? (g.pricePrimaryUltimate || (hasEditions ? 92000 : null));
                     const ultSec = override?.price_secondary_ultimate ?? (g.priceSecondaryUltimate || (hasEditions ? 60000 : null));
+                    const isLegacyStale = legacyStaleOfferIds.has(Number(g.id)) && (!override || override.is_offer !== true);
                     return {
                         id: g.id,
                         title: g.title,
@@ -802,15 +879,15 @@ async function loadGames() {
                         price_secondary_ultimate: ultSec,
                         editions: g.editions || override?.editions || null,
                         price_ps3: null,
-                        is_offer: Boolean(g.isOffer),
-                        old_price_primary: g.oldPricePrimary || null,
-                        discount: g.discount || null,
+                        is_offer: isLegacyStale ? false : (override?.is_offer !== undefined ? Boolean(override.is_offer) : Boolean(g.isOffer)),
+                        old_price_primary: isLegacyStale ? null : (override?.old_price_primary !== undefined ? override.old_price_primary : (g.oldPricePrimary || null)),
+                        discount: isLegacyStale ? null : (override?.discount !== undefined ? override.discount : (g.discount || null)),
                         image: resolveGameCover(g.image, g.title, g.id),
                         description: g.description || "",
                         genre: g.genre || "",
                         languages: (g.languages || "Español, Inglés").replace(/Español Latino/gi, 'Español'),
                         size: g.size || "Aprox. 50 GB",
-                        availability: g.availability || (g.inStock === false ? 'sin_stock' : 'disponible'),
+                        availability: override?.availability || g.availability || (g.inStock === false ? 'sin_stock' : 'disponible'),
                         is_featured: Boolean(g.isFeatured)
                     };
                 });
@@ -823,7 +900,7 @@ async function loadGames() {
                 return bGta - aGta;
             });
         } else {
-            allGames = dbGames;
+            allGames = dbGames.filter(g => g.deleted !== true && g.availability !== 'eliminado' && !deletedNormSetGlobal.has(normalizeCatalogKey(g.title)));
         }
 
         // Sincronizar automáticamente en Supabase si el administrador está logueado
@@ -849,22 +926,39 @@ async function syncRetiredGamesCleanupToSupabase(sb, rawData) {
         const { data: { session } } = await sb.auth.getSession();
         if (!session || !session.user) return;
 
-        const retiredNormSet = new Set(
-            (window.RETIRED_CATALOG_TITLES || []).map(t => normalizeCatalogKey(t))
-        );
+        const retiredNormSet = new Set([
+            ...(window.RETIRED_CATALOG_TITLES || []).map(t => normalizeCatalogKey(t)),
+            ...(window.DELETED_GAMES_LIST || []).map(t => normalizeCatalogKey(t))
+        ]);
 
         const idsToRemove = (rawData || [])
-            .filter(g => g && g.id && !String(g.title || '').startsWith('__') && (
-                isEspanolLatinoTitle(g.title) ||
-                retiredNormSet.has(normalizeCatalogKey(g.title))
-            ))
+            .filter(g => {
+                if (!g || !g.id || String(g.title || '').startsWith('__')) return false;
+                const nk = normalizeCatalogKey(g.title);
+                const nkRes = normalizeCatalogKey(resolveGameTitle(g.title, g.id));
+                const ov = getUpdatedPriceForGame(g);
+                return (
+                    isEspanolLatinoTitle(g.title) ||
+                    retiredNormSet.has(nk) ||
+                    retiredNormSet.has(nkRes) ||
+                    (ov && ov.deleted === true)
+                );
+            })
             .map(g => g.id);
 
         if (idsToRemove.length > 0) {
-            console.log(`[ZONA DIGITAL] Eliminando ${idsToRemove.length} juegos «Español Latino» en Supabase...`);
+            console.log(`[ZONA DIGITAL] Eliminando ${idsToRemove.length} juegos retirados/eliminados en Supabase...`);
             const chunkSize = 50;
             for (let i = 0; i < idsToRemove.length; i += chunkSize) {
                 const chunk = idsToRemove.slice(i, i + chunkSize);
+                await sb.from('games').update({
+                    availability: 'eliminado',
+                    category: 'deleted_game',
+                    is_offer: false,
+                    old_price_primary: null,
+                    discount: null,
+                    updated_at: new Date().toISOString()
+                }).in('id', chunk);
                 await sb.from('games').delete().in('id', chunk);
             }
         }
@@ -948,10 +1042,20 @@ async function syncUpdatedPricesToSupabase(sb, rawData) {
         const { data: { session } } = await sb.auth.getSession();
         if (!session || !session.user) return;
 
+        const showcaseKeys = new Set(
+            (Array.isArray(OFERTAS_SHOWCASE_DATA) ? OFERTAS_SHOWCASE_DATA : []).map(c => normalizeCatalogKey(c.title))
+        );
+        const showcaseIds = new Set(
+            (Array.isArray(OFERTAS_SHOWCASE_DATA) ? OFERTAS_SHOWCASE_DATA : []).map(c => String(c.id))
+        );
+        const legacyStaleOfferIds = new Set([296, 76, 71, 66, 64, 63, 60, 59, 35, 30]);
+
         for (const g of rawData) {
+            if (!g || !g.id || String(g.title || '').startsWith('__')) continue;
             const override = getUpdatedPriceForGame(g);
+            const dbUpdatePayload = {};
+
             if (override) {
-                const dbUpdatePayload = {};
                 if (override.price_primary !== undefined) dbUpdatePayload.price_primary = override.price_primary;
                 if (override.price_secondary !== undefined) dbUpdatePayload.price_secondary = override.price_secondary;
                 if (override.price_primary_ps4 !== undefined) dbUpdatePayload.price_primary_ps4 = override.price_primary_ps4;
@@ -959,18 +1063,30 @@ async function syncUpdatedPricesToSupabase(sb, rawData) {
                 if (override.is_offer !== undefined) dbUpdatePayload.is_offer = override.is_offer;
                 if (override.old_price_primary !== undefined) dbUpdatePayload.old_price_primary = override.old_price_primary;
                 if (override.discount !== undefined) dbUpdatePayload.discount = override.discount;
+            }
 
-                const diff = 
-                    (dbUpdatePayload.price_primary !== undefined && Number(g.price_primary) !== Number(dbUpdatePayload.price_primary)) ||
-                    (dbUpdatePayload.price_secondary !== undefined && Number(g.price_secondary) !== Number(dbUpdatePayload.price_secondary)) ||
-                    (dbUpdatePayload.price_primary_ps4 !== undefined && Number(g.price_primary_ps4) !== Number(dbUpdatePayload.price_primary_ps4)) ||
-                    (dbUpdatePayload.price_secondary_ps4 !== undefined && Number(g.price_secondary_ps4) !== Number(dbUpdatePayload.price_secondary_ps4)) ||
-                    (dbUpdatePayload.is_offer !== undefined && Boolean(g.is_offer) !== Boolean(dbUpdatePayload.is_offer));
+            if (
+                g.is_offer &&
+                legacyStaleOfferIds.has(Number(g.id)) &&
+                (!override || override.is_offer !== true) &&
+                !showcaseIds.has(String(g.id)) &&
+                !showcaseKeys.has(normalizeCatalogKey(g.title))
+            ) {
+                dbUpdatePayload.is_offer = false;
+                dbUpdatePayload.old_price_primary = null;
+                dbUpdatePayload.discount = null;
+            }
 
-                if (diff) {
-                    await sb.from('games').update(dbUpdatePayload).eq('id', g.id);
-                    console.log(`[ZONA DIGITAL] Precios actualizados en Supabase para "${g.title}"`);
-                }
+            const diff = 
+                (dbUpdatePayload.price_primary !== undefined && Number(g.price_primary) !== Number(dbUpdatePayload.price_primary)) ||
+                (dbUpdatePayload.price_secondary !== undefined && Number(g.price_secondary) !== Number(dbUpdatePayload.price_secondary)) ||
+                (dbUpdatePayload.price_primary_ps4 !== undefined && Number(g.price_primary_ps4) !== Number(dbUpdatePayload.price_primary_ps4)) ||
+                (dbUpdatePayload.price_secondary_ps4 !== undefined && Number(g.price_secondary_ps4) !== Number(dbUpdatePayload.price_secondary_ps4)) ||
+                (dbUpdatePayload.is_offer !== undefined && Boolean(g.is_offer) !== Boolean(dbUpdatePayload.is_offer));
+
+            if (diff) {
+                await sb.from('games').update(dbUpdatePayload).eq('id', g.id);
+                console.log(`[ZONA DIGITAL] Precios/Oferta actualizados en Supabase para "${g.title}"`);
             }
         }
     } catch (e) {
@@ -1163,7 +1279,7 @@ function renderGamesTable(games) {
                         <button type="button" class="btn-action-icon edit" onclick="openGameModal(${game.id})" title="Editar juego">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <button type="button" class="btn-action-icon delete" onclick="confirmDeleteGame(${game.id}, '${escapeHtml(game.title)}')" title="Eliminar juego">
+                        <button type="button" class="btn-action-icon delete" onclick="confirmDeleteGame(${game.id})" title="Eliminar juego">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -1184,8 +1300,7 @@ async function persistAdminOverridesToSupabase(sb) {
         const { data: existingPrices } = await sb
             .from('games')
             .select('id')
-            .eq('title', '__admin_overrides__')
-            .maybeSingle();
+            .eq('title', '__admin_overrides__');
 
         const payload = {
             title: '__admin_overrides__',
@@ -1198,8 +1313,8 @@ async function persistAdminOverridesToSupabase(sb) {
             updated_at: new Date().toISOString()
         };
 
-        if (existingPrices && existingPrices.id) {
-            await sb.from('games').update(payload).eq('id', existingPrices.id);
+        if (Array.isArray(existingPrices) && existingPrices.length > 0) {
+            await sb.from('games').update(payload).eq('title', '__admin_overrides__');
         } else {
             await sb.from('games').insert([payload]);
         }
@@ -1789,7 +1904,8 @@ async function saveGame(e) {
             availability: gamePayload.availability,
             out_of_stock_visibility: outOfStockVisibility,
             has_editions: hasEditions,
-            editions_list: hasEditions ? validatedEditions : []
+            editions_list: hasEditions ? validatedEditions : [],
+            deleted: false
         };
         if (hasEditions && validatedEditions.length >= 2) {
             customPriceEntry.price_primary_ultimate = validatedEditions[1].pricePrimary;
@@ -1800,14 +1916,42 @@ async function saveGame(e) {
 
         await persistAdminOverridesToSupabase(sb);
 
+        // Si el juego dejó de estar en oferta desde el modal, quitarlo también de OFERTAS_SHOWCASE_DATA
+        if (!gamePayload.is_offer && typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA)) {
+            const beforeLen = OFERTAS_SHOWCASE_DATA.length;
+            OFERTAS_SHOWCASE_DATA = OFERTAS_SHOWCASE_DATA.filter(c => {
+                if (gameId && String(c.id) === String(gameId)) return false;
+                const cTitle = (c.title || '').toLowerCase().trim();
+                const cNorm = normalizeCatalogKey(c.title || '');
+                if (cTitle && cTitle === titleKey) return false;
+                if (cNorm && normKeyVal && cNorm === normKeyVal) return false;
+                return true;
+            });
+            if (OFERTAS_SHOWCASE_DATA.length !== beforeLen) {
+                try { localStorage.setItem('zd_offers_showcase', JSON.stringify(OFERTAS_SHOWCASE_DATA)); } catch (e) {}
+                try {
+                    await sb.from('games').update({
+                        description: JSON.stringify(OFERTAS_SHOWCASE_DATA),
+                        updated_at: new Date().toISOString()
+                    }).eq('title', '__offers_showcase__');
+                } catch (e) {}
+            }
+        }
+
         if (resultError) {
             showToast("Error al guardar en tabla principal: " + resultError.message, "error");
         } else {
             const savedTitleNorm = (gamePayload.title || '').toLowerCase().trim();
             if (window.DELETED_GAMES_LIST && window.DELETED_GAMES_LIST.length > 0) {
-                const hadDeleted = window.DELETED_GAMES_LIST.some(t => t.toLowerCase().trim() === savedTitleNorm);
+                const hadDeleted = window.DELETED_GAMES_LIST.some(t => {
+                    const tn = String(t || '').toLowerCase().trim();
+                    return tn === savedTitleNorm || (normKeyVal && normalizeCatalogKey(tn) === normKeyVal);
+                });
                 if (hadDeleted) {
-                    window.DELETED_GAMES_LIST = window.DELETED_GAMES_LIST.filter(t => t.toLowerCase().trim() !== savedTitleNorm);
+                    window.DELETED_GAMES_LIST = window.DELETED_GAMES_LIST.filter(t => {
+                        const tn = String(t || '').toLowerCase().trim();
+                        return tn !== savedTitleNorm && (!normKeyVal || normalizeCatalogKey(tn) !== normKeyVal);
+                    });
                     try { localStorage.setItem('zd_deleted_games', JSON.stringify(window.DELETED_GAMES_LIST)); } catch(e) {}
                     try {
                         await sb.from('games').update({
@@ -1820,7 +1964,7 @@ async function saveGame(e) {
 
             showToast(gameId ? "¡Juego actualizado con éxito!" : "¡Juego agregado al catálogo con éxito!", "success");
             closeGameModal();
-            loadGames();
+            await loadGames();
         }
 
     } catch (err) {
@@ -1837,7 +1981,12 @@ async function saveGame(e) {
  */
 function confirmDeleteGame(id, title) {
     currentGameToDelete = id;
-    document.getElementById('deleteGameTitle').textContent = `"${title}"`;
+    let resolvedTitle = title;
+    if (!resolvedTitle) {
+        const found = allGames.find(g => String(g.id) === String(id));
+        resolvedTitle = found ? found.title : `ID #${id}`;
+    }
+    document.getElementById('deleteGameTitle').textContent = `"${resolvedTitle}"`;
     document.getElementById('deleteConfirmModal').classList.add('active');
 }
 
@@ -1856,30 +2005,99 @@ async function executeDeleteGame() {
     btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Eliminando...`;
 
     try {
-        const targetGame = allGames.find(g => String(g.id) === String(currentGameToDelete));
-        const targetTitle = targetGame ? targetGame.title : null;
+        const targetIdStr = String(currentGameToDelete);
+        const targetGame = allGames.find(g => String(g.id) === targetIdStr);
+        const targetTitle = targetGame ? (targetGame.title || '').trim() : null;
+        const targetRawTitle = targetGame ? (targetGame.rawTitle || '').trim() : null;
+        const targetNormKey = targetTitle ? normalizeCatalogKey(targetTitle) : '';
 
-        // 1. Borrar de Supabase por ID
-        await sb.from('games').delete().eq('id', currentGameToDelete);
+        // Identificar todas las filas en memoria que correspondan al mismo juego (por ID o clave normalizada)
+        const matchingGames = allGames.filter(g => {
+            if (String(g.id) === targetIdStr) return true;
+            if (targetTitle && (g.title || '').toLowerCase().trim() === targetTitle.toLowerCase()) return true;
+            if (targetNormKey && normalizeCatalogKey(g.title || '') === targetNormKey) return true;
+            return false;
+        });
 
-        // 2. Si tiene título, asegurar borrado y persistir en la lista de eliminados
+        const idsToDelete = Array.from(new Set([
+            currentGameToDelete,
+            ...matchingGames.map(g => g.id).filter(Boolean)
+        ]));
+
+        // 1. Marcar como eliminado (UPDATE siempre permitido por RLS) y borrar de Supabase por todos los IDs coincidentes
+        for (const delId of idsToDelete) {
+            if (delId !== undefined && delId !== null && String(delId).trim() !== '') {
+                await sb.from('games').update({
+                    availability: 'eliminado',
+                    category: 'deleted_game',
+                    is_offer: false,
+                    old_price_primary: null,
+                    discount: null,
+                    updated_at: new Date().toISOString()
+                }).eq('id', delId);
+                await sb.from('games').delete().eq('id', delId);
+            }
+        }
+
+        // 2. Si tiene título, asegurar actualización/borrado en Supabase y persistir en __deleted_games__ y __admin_overrides__
         if (targetTitle) {
+            await sb.from('games').update({
+                availability: 'eliminado',
+                category: 'deleted_game',
+                is_offer: false,
+                old_price_primary: null,
+                discount: null,
+                updated_at: new Date().toISOString()
+            }).ilike('title', targetTitle);
             await sb.from('games').delete().ilike('title', targetTitle);
+            if (targetRawTitle && targetRawTitle.toLowerCase() !== targetTitle.toLowerCase()) {
+                await sb.from('games').update({
+                    availability: 'eliminado',
+                    category: 'deleted_game',
+                    is_offer: false,
+                    old_price_primary: null,
+                    discount: null,
+                    updated_at: new Date().toISOString()
+                }).ilike('title', targetRawTitle);
+                await sb.from('games').delete().ilike('title', targetRawTitle);
+            }
 
             if (!window.DELETED_GAMES_LIST) window.DELETED_GAMES_LIST = [];
             const normTitle = targetTitle.toLowerCase().trim();
-            if (!window.DELETED_GAMES_LIST.some(t => t.toLowerCase().trim() === normTitle)) {
-                window.DELETED_GAMES_LIST.push(targetTitle);
-                try { localStorage.setItem('zd_deleted_games', JSON.stringify(window.DELETED_GAMES_LIST)); } catch(e) {}
+            const titlesToRecord = [targetTitle];
+            if (targetRawTitle && targetRawTitle.toLowerCase().trim() !== normTitle) {
+                titlesToRecord.push(targetRawTitle);
             }
+            titlesToRecord.forEach(tToRec => {
+                const low = tToRec.toLowerCase().trim();
+                if (low && !window.DELETED_GAMES_LIST.some(t => String(t || '').toLowerCase().trim() === low)) {
+                    window.DELETED_GAMES_LIST.push(tToRec);
+                }
+            });
+            try { localStorage.setItem('zd_deleted_games', JSON.stringify(window.DELETED_GAMES_LIST)); } catch(e) {}
+
+            // Marcar también como deleted: true e is_offer: false en ADMIN_CUSTOM_PRICES (__admin_overrides__)
+            if (!window.ADMIN_CUSTOM_PRICES) window.ADMIN_CUSTOM_PRICES = {};
+            const prevOverride = window.ADMIN_CUSTOM_PRICES[normTitle] || (targetNormKey ? window.ADMIN_CUSTOM_PRICES[targetNormKey] : {}) || {};
+            const deletedOverrideEntry = {
+                ...prevOverride,
+                deleted: true,
+                is_offer: false,
+                old_price_primary: null,
+                discount: null
+            };
+            window.ADMIN_CUSTOM_PRICES[normTitle] = deletedOverrideEntry;
+            if (targetNormKey) window.ADMIN_CUSTOM_PRICES[targetNormKey] = deletedOverrideEntry;
+            if (targetRawTitle) window.ADMIN_CUSTOM_PRICES[targetRawTitle.toLowerCase().trim()] = deletedOverrideEntry;
+
+            await persistAdminOverridesToSupabase(sb);
 
             // Persistir __deleted_games__ en Supabase
             try {
                 const { data: existingDeleted } = await sb
                     .from('games')
                     .select('id')
-                    .eq('title', '__deleted_games__')
-                    .maybeSingle();
+                    .eq('title', '__deleted_games__');
 
                 const payload = {
                     title: '__deleted_games__',
@@ -1892,8 +2110,8 @@ async function executeDeleteGame() {
                     updated_at: new Date().toISOString()
                 };
 
-                if (existingDeleted && existingDeleted.id) {
-                    await sb.from('games').update(payload).eq('id', existingDeleted.id);
+                if (Array.isArray(existingDeleted) && existingDeleted.length > 0) {
+                    await sb.from('games').update(payload).eq('title', '__deleted_games__');
                 } else {
                     await sb.from('games').insert([payload]);
                 }
@@ -1903,17 +2121,27 @@ async function executeDeleteGame() {
 
             // Quitar de OFERTAS_SHOWCASE_DATA si estaba en el carrusel
             if (typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA)) {
-                OFERTAS_SHOWCASE_DATA = OFERTAS_SHOWCASE_DATA.filter(c => 
-                    String(c.id) !== String(currentGameToDelete) && (!c.title || c.title.toLowerCase().trim() !== normTitle)
-                );
+                OFERTAS_SHOWCASE_DATA = OFERTAS_SHOWCASE_DATA.filter(c => {
+                    if (idsToDelete.some(idVal => String(c.id) === String(idVal))) return false;
+                    const cTitle = (c.title || '').toLowerCase().trim();
+                    const cNorm = normalizeCatalogKey(c.title || '');
+                    if (cTitle === normTitle) return false;
+                    if (targetNormKey && cNorm === targetNormKey) return false;
+                    return true;
+                });
                 await saveAllOffersChanges();
             }
         }
 
         // 3. Quitar inmediatamente de allGames en memoria
-        allGames = allGames.filter(g => String(g.id) !== String(currentGameToDelete));
+        allGames = allGames.filter(g => {
+            if (idsToDelete.some(idVal => String(g.id) === String(idVal))) return false;
+            if (targetTitle && (g.title || '').toLowerCase().trim() === targetTitle.toLowerCase()) return false;
+            if (targetNormKey && normalizeCatalogKey(g.title || '') === targetNormKey) return false;
+            return true;
+        });
 
-        showToast("Juego eliminado del catálogo con éxito", "success");
+        showToast("Juego eliminado permanentemente del catálogo", "success");
         closeDeleteModal();
         updateMetrics();
         filterGamesList();
@@ -2394,10 +2622,28 @@ async function addGameToOffers() {
     game.old_price_primary = oldPrice;
     game.discount = discount || null;
 
+    // Persistir también en ADMIN_CUSTOM_PRICES (__admin_overrides__)
+    if (!window.ADMIN_CUSTOM_PRICES) window.ADMIN_CUSTOM_PRICES = {};
+    const titleKey = (game.title || '').toLowerCase().trim();
+    const normKeyVal = normalizeCatalogKey(game.title || '');
+    const existingOverride = window.ADMIN_CUSTOM_PRICES[titleKey] || (normKeyVal ? window.ADMIN_CUSTOM_PRICES[normKeyVal] : null) || getUpdatedPriceForGame(game) || {};
+    const updatedOfferOverride = {
+        ...existingOverride,
+        price_primary: game.price_primary,
+        price_secondary: game.price_secondary,
+        is_offer: true,
+        old_price_primary: game.old_price_primary,
+        discount: game.discount
+    };
+    window.ADMIN_CUSTOM_PRICES[titleKey] = updatedOfferOverride;
+    if (normKeyVal) window.ADMIN_CUSTOM_PRICES[normKeyVal] = updatedOfferOverride;
+
     // Actualizar Carrusel
     if (typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA)) {
         const idx = OFERTAS_SHOWCASE_DATA.findIndex(c => 
-            String(c.id) === String(game.id) || (c.title && c.title.toLowerCase().trim() === (game.title || '').toLowerCase().trim())
+            String(c.id) === String(game.id) ||
+            (c.title && c.title.toLowerCase().trim() === titleKey) ||
+            (c.title && normKeyVal && normalizeCatalogKey(c.title) === normKeyVal)
         );
 
         if (carouselCheckbox && carouselCheckbox.checked) {
@@ -2424,12 +2670,17 @@ async function addGameToOffers() {
         }
     }
 
-    // Guardar cambios
+    // Guardar cambios en Supabase y localStorage
+    const sb = initSupabase();
+    if (sb) {
+        await persistAdminOverridesToSupabase(sb);
+    }
     await saveAllOffersChanges();
 
     // Actualizar vista
     renderAdminOffersView();
     filterGamesList();
+    updateMetrics();
     showToast(`¡"${game.title}" ahora está en Oferta!`, "success");
 
     // Limpiar formulario rápido
@@ -2447,21 +2698,92 @@ async function removeGameFromOffers(gameId) {
         return;
     }
 
-    game.is_offer = false;
-    game.old_price_primary = null;
-    game.discount = null;
+    const titleKey = (game.title || '').toLowerCase().trim();
+    const rawKey = (game.rawTitle || '').toLowerCase().trim();
+    const normKeyVal = normalizeCatalogKey(game.title || '');
 
-    // Quitar del Carrusel si estaba
+    // 1. Desactivar oferta en memoria en todas las entradas coincidentes
+    const affectedGames = [];
+    allGames.forEach(g => {
+        const gTitle = (g.title || '').toLowerCase().trim();
+        const gNorm = normalizeCatalogKey(g.title || '');
+        if (String(g.id) === String(gameId) || (titleKey && gTitle === titleKey) || (normKeyVal && gNorm === normKeyVal)) {
+            g.is_offer = false;
+            g.old_price_primary = null;
+            g.discount = null;
+            affectedGames.push(g);
+        }
+    });
+
+    // 2. Quitar del Carrusel (OFERTAS_SHOWCASE_DATA)
     if (typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA)) {
-        OFERTAS_SHOWCASE_DATA = OFERTAS_SHOWCASE_DATA.filter(c => 
-            String(c.id) !== String(game.id) && (!c.title || c.title.toLowerCase().trim() !== (game.title || '').toLowerCase().trim())
-        );
+        OFERTAS_SHOWCASE_DATA = OFERTAS_SHOWCASE_DATA.filter(c => {
+            if (String(c.id) === String(game.id)) return false;
+            const cTitle = (c.title || '').toLowerCase().trim();
+            const cNorm = normalizeCatalogKey(c.title || '');
+            if (titleKey && cTitle === titleKey) return false;
+            if (rawKey && cTitle === rawKey) return false;
+            if (normKeyVal && cNorm === normKeyVal) return false;
+            return true;
+        });
+    }
+
+    // 3. Persistir is_offer: false en ADMIN_CUSTOM_PRICES (__admin_overrides__)
+    if (!window.ADMIN_CUSTOM_PRICES) window.ADMIN_CUSTOM_PRICES = {};
+    const existingOverride = window.ADMIN_CUSTOM_PRICES[titleKey] || (normKeyVal ? window.ADMIN_CUSTOM_PRICES[normKeyVal] : null) || getUpdatedPriceForGame(game) || {};
+    const nonOfferOverride = {
+        ...existingOverride,
+        price_primary: game.price_primary,
+        price_secondary: game.price_secondary,
+        is_offer: false,
+        old_price_primary: null,
+        discount: null
+    };
+    if (titleKey) window.ADMIN_CUSTOM_PRICES[titleKey] = nonOfferOverride;
+    if (rawKey) window.ADMIN_CUSTOM_PRICES[rawKey] = nonOfferOverride;
+    if (normKeyVal) window.ADMIN_CUSTOM_PRICES[normKeyVal] = nonOfferOverride;
+
+    // 4. Actualizar directamente en Supabase (tabla games + __admin_overrides__ + __offers_showcase__)
+    const sb = initSupabase();
+    if (sb) {
+        try {
+            for (const ag of affectedGames) {
+                if (ag.id !== undefined && ag.id !== null) {
+                    await sb.from('games').update({
+                        is_offer: false,
+                        old_price_primary: null,
+                        discount: null,
+                        updated_at: new Date().toISOString()
+                    }).eq('id', ag.id);
+                }
+            }
+            if (game.title) {
+                await sb.from('games').update({
+                    is_offer: false,
+                    old_price_primary: null,
+                    discount: null,
+                    updated_at: new Date().toISOString()
+                }).ilike('title', game.title);
+            }
+            if (game.rawTitle && game.rawTitle.toLowerCase() !== (game.title || '').toLowerCase()) {
+                await sb.from('games').update({
+                    is_offer: false,
+                    old_price_primary: null,
+                    discount: null,
+                    updated_at: new Date().toISOString()
+                }).ilike('title', game.rawTitle);
+            }
+        } catch (err) {
+            console.warn("Aviso al desactivar oferta en tabla games:", err);
+        }
+        await persistAdminOverridesToSupabase(sb);
     }
 
     await saveAllOffersChanges();
     renderAdminOffersView();
     filterGamesList();
-    showToast(`"${game.title}" se quitó de las ofertas`, "info");
+    updateMetrics();
+    showToast(`"${game.title}" se quitó de las ofertas permanentemente`, "info");
 }
 
 async function toggleCarouselOffer(gameId) {
@@ -2472,8 +2794,12 @@ async function toggleCarouselOffer(gameId) {
         window.OFERTAS_SHOWCASE_DATA = [];
     }
 
+    const titleKey = (game.title || '').toLowerCase().trim();
+    const normKeyVal = normalizeCatalogKey(game.title || '');
     const idx = OFERTAS_SHOWCASE_DATA.findIndex(c => 
-        String(c.id) === String(game.id) || (c.title && c.title.toLowerCase().trim() === (game.title || '').toLowerCase().trim())
+        String(c.id) === String(game.id) ||
+        (c.title && c.title.toLowerCase().trim() === titleKey) ||
+        (c.title && normKeyVal && normalizeCatalogKey(c.title) === normKeyVal)
     );
 
     if (idx >= 0) {
@@ -2512,18 +2838,44 @@ async function updateOfferInlinePrice(gameId, field, value) {
         game.discount = `-${pct}%`;
     }
 
+    const titleKey = (game.title || '').toLowerCase().trim();
+    const normKeyVal = normalizeCatalogKey(game.title || '');
+
+    // Actualizar en ADMIN_CUSTOM_PRICES (__admin_overrides__)
+    if (!window.ADMIN_CUSTOM_PRICES) window.ADMIN_CUSTOM_PRICES = {};
+    const existingOverride = window.ADMIN_CUSTOM_PRICES[titleKey] || (normKeyVal ? window.ADMIN_CUSTOM_PRICES[normKeyVal] : null) || getUpdatedPriceForGame(game) || {};
+    const updatedOfferOverride = {
+        ...existingOverride,
+        price_primary: game.price_primary,
+        price_secondary: game.price_secondary,
+        is_offer: Boolean(game.is_offer),
+        old_price_primary: game.old_price_primary,
+        discount: game.discount
+    };
+    if (titleKey) window.ADMIN_CUSTOM_PRICES[titleKey] = updatedOfferOverride;
+    if (normKeyVal) window.ADMIN_CUSTOM_PRICES[normKeyVal] = updatedOfferOverride;
+
     // Actualizar en OFERTAS_SHOWCASE_DATA si está
     if (typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA)) {
         const item = OFERTAS_SHOWCASE_DATA.find(c => 
-            String(c.id) === String(game.id) || (c.title && c.title.toLowerCase().trim() === (game.title || '').toLowerCase().trim())
+            String(c.id) === String(game.id) ||
+            (c.title && c.title.toLowerCase().trim() === titleKey) ||
+            (c.title && normKeyVal && normalizeCatalogKey(c.title) === normKeyVal)
         );
         if (item) {
-            if (field === 'price_primary') item.price = numVal;
+            if (field === 'price_primary') {
+                item.price = numVal;
+                item.newPrice = numVal;
+            }
             if (field === 'old_price_primary') item.oldPrice = numVal;
             if (game.discount) item.discount = game.discount;
         }
     }
 
+    const sb = initSupabase();
+    if (sb) {
+        await persistAdminOverridesToSupabase(sb);
+    }
     await saveAllOffersChanges();
     renderAdminOffersView();
 }
@@ -2554,8 +2906,7 @@ async function saveAllOffersChanges(e) {
                 const { data: existing } = await sb
                     .from('games')
                     .select('id')
-                    .eq('title', '__offers_showcase__')
-                    .maybeSingle();
+                    .eq('title', '__offers_showcase__');
 
                 const payload = {
                     title: '__offers_showcase__',
@@ -2568,8 +2919,8 @@ async function saveAllOffersChanges(e) {
                     updated_at: new Date().toISOString()
                 };
 
-                if (existing && existing.id) {
-                    await sb.from('games').update(payload).eq('id', existing.id);
+                if (Array.isArray(existing) && existing.length > 0) {
+                    await sb.from('games').update(payload).eq('title', '__offers_showcase__');
                 } else {
                     await sb.from('games').insert([payload]);
                 }
@@ -2577,7 +2928,7 @@ async function saveAllOffersChanges(e) {
                 console.warn("Aviso al sincronizar ofertas carrusel en Supabase:", err);
             }
 
-            // Sincronizar juegos modificados en la tabla games
+            // Sincronizar juegos en oferta en la tabla games
             try {
                 const gamesToSync = allGames.filter(g => 
                     g.id && typeof g.id === 'number' && (g.is_offer || g.old_price_primary || g.discount)

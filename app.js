@@ -79,6 +79,15 @@ function loadLocalAdminState() {
             }
         }
     } catch (_) {}
+    try {
+        const savedShowcase = localStorage.getItem('zd_offers_showcase');
+        if (savedShowcase) {
+            const parsedShowcase = JSON.parse(savedShowcase);
+            if (Array.isArray(parsedShowcase)) {
+                OFERTAS_SHOWCASE_DATA = parsedShowcase;
+            }
+        }
+    } catch (_) {}
 }
 loadLocalAdminState();
 
@@ -353,6 +362,17 @@ function isGameHiddenFromCatalog(game) {
 
 function applyAdminOverridesToLocalGames() {
     if (typeof GAMES_DATA === 'undefined' || !Array.isArray(GAMES_DATA)) return;
+    if (window.ADMIN_CUSTOM_PRICES && typeof window.ADMIN_CUSTOM_PRICES === 'object') {
+        if (!Array.isArray(window.DELETED_GAMES_LIST)) window.DELETED_GAMES_LIST = [];
+        Object.entries(window.ADMIN_CUSTOM_PRICES).forEach(([k, val]) => {
+            if (val && val.deleted === true && k) {
+                const low = k.toLowerCase().trim();
+                if (!window.DELETED_GAMES_LIST.some(t => String(t || '').toLowerCase().trim() === low)) {
+                    window.DELETED_GAMES_LIST.push(k);
+                }
+            }
+        });
+    }
     const deletedNormSet = new Set([
         ...(window.DELETED_GAMES_LIST || []).map(t => normalizeCatalogKey(t)),
         ...(window.RETIRED_CATALOG_TITLES || []).map(t => normalizeCatalogKey(t))
@@ -360,11 +380,11 @@ function applyAdminOverridesToLocalGames() {
 
     for (let i = GAMES_DATA.length - 1; i >= 0; i--) {
         const g = GAMES_DATA[i];
-        if (!g || isEspanolLatinoTitle(g.title) || deletedNormSet.has(normalizeCatalogKey(g.title))) {
+        const override = g ? getUpdatedPriceForGame(g) : null;
+        if (!g || isEspanolLatinoTitle(g.title) || deletedNormSet.has(normalizeCatalogKey(g.title)) || (override && override.deleted === true)) {
             GAMES_DATA.splice(i, 1);
             continue;
         }
-        const override = getUpdatedPriceForGame(g);
         if (override) {
             if (override.price_primary !== undefined) g.pricePrimary = Number(override.price_primary) || 0;
             if (override.price_secondary !== undefined) g.priceSecondary = (override.price_secondary !== null && override.price_secondary !== '') ? Number(override.price_secondary) : null;
@@ -387,6 +407,17 @@ function applyAdminOverridesToLocalGames() {
                 g.editionsList = override.editions_list;
             }
         }
+    }
+
+    if (typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA)) {
+        OFERTAS_SHOWCASE_DATA = OFERTAS_SHOWCASE_DATA.filter(item => {
+            if (!item || !item.title) return false;
+            const nk = normalizeCatalogKey(item.title);
+            if (deletedNormSet.has(nk)) return false;
+            const ov = getUpdatedPriceForGame(item);
+            if (ov && (ov.deleted === true || ov.is_offer === false)) return false;
+            return true;
+        });
     }
 }
 
@@ -420,18 +451,8 @@ function getUpdatedPriceForGame(game) {
     if (id === 23 || t.includes('assetto corsa')) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
-    // Ofertas desactivadas solicitadas por el usuario
-    if (id === 1 || t.includes('modern warfare iii') || t.includes('modern warfare 3')) {
-        return { is_offer: false, old_price_primary: null, discount: null };
-    }
-    if (id === 2 || t.includes('fc 25')) {
-        return { is_offer: false, old_price_primary: null, discount: null };
-    }
-    if (t.includes('trilogy') && t.includes('grand theft auto')) {
-        return { is_offer: false, old_price_primary: null, discount: null };
-    }
     if (id === 4 || (t.includes('grand theft auto v') && !t.includes('trilogy') && !t.includes('vi'))) {
-        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 17500, price_secondary_ps4: 9500, is_offer: false, old_price_primary: null, discount: null };
+        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 17500, price_secondary_ps4: 9500 };
     }
     if (id === 5 || (t.includes('god of war') && (t.includes('ragnarök') || t.includes('ragnarok')))) {
         return { price_primary: 25000, price_secondary: 17500, price_primary_ps4: 19000, price_secondary_ps4: 11000 };
@@ -452,16 +473,13 @@ function getUpdatedPriceForGame(game) {
         return { price_primary: 9000, price_secondary: 8200, price_primary_ps4: 9000, price_secondary_ps4: 8200 };
     }
     if (id === 10 || t === 'resident evil 4 remake') {
-        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500, is_offer: false, old_price_primary: null, discount: null };
+        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
     if (id === 7 || (t.includes('mortal kombat 1') && !t.includes('xl') && !t.includes('definitive') && !t.includes('11'))) {
-        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500, is_offer: false, old_price_primary: null, discount: null };
+        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
     if (id === 11 || t.includes('hogwarts')) {
-        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500, is_offer: false, old_price_primary: null, discount: null };
-    }
-    if (id === 12 || (t.includes('red dead redemption 2') && !t.includes('lote'))) {
-        return { is_offer: false, old_price_primary: null, discount: null };
+        return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
     }
     // 14 Nuevos juegos
     if (t.includes('arc raiders')) {
@@ -506,12 +524,12 @@ function getUpdatedPriceForGame(game) {
     if (t.includes('modern warfare 4') || t.includes('mw4')) {
         return { price_primary: 35000, price_secondary: 20000, price_primary_ps4: 35000, price_secondary_ps4: 20000 };
     }
-    // 27 Nuevos juegos (con las nuevas 7 ofertas activadas)
+    // 27 Nuevos juegos (los precios base se mantienen; el estado de oferta lo controla la base de datos y el panel de admin)
     if (t.includes('dirt rally')) {
-        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500, is_offer: true, old_price_primary: 22000, discount: "-25%" };
+        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500 };
     }
     if (t.includes('until dawn')) {
-        return { price_primary: 7500, price_secondary: 5900, price_primary_ps4: 7500, price_secondary_ps4: 5900, is_offer: true, old_price_primary: 10500, discount: "-28%" };
+        return { price_primary: 7500, price_secondary: 5900, price_primary_ps4: 7500, price_secondary_ps4: 5900 };
     }
     if (t.includes('watch dogs') && !t.includes('watch dogs 2') && !t.includes('legion')) {
         return { price_primary: 7500, price_secondary: 6000, price_primary_ps4: 7500, price_secondary_ps4: 6000 };
@@ -520,16 +538,16 @@ function getUpdatedPriceForGame(game) {
         return { price_primary: 20000, price_secondary: 10000 };
     }
     if (t.includes('infamous')) {
-        return { price_primary: 7500, price_secondary: 6000, price_primary_ps4: 7500, price_secondary_ps4: 6000, is_offer: true, old_price_primary: 11000, discount: "-32%" };
+        return { price_primary: 7500, price_secondary: 6000, price_primary_ps4: 7500, price_secondary_ps4: 6000 };
     }
     if (t.includes('detroit')) {
-        return { price_primary: 7500, price_secondary: 6000, price_primary_ps4: 7500, price_secondary_ps4: 6000, is_offer: true, old_price_primary: 11000, discount: "-32%" };
+        return { price_primary: 7500, price_secondary: 6000, price_primary_ps4: 7500, price_secondary_ps4: 6000 };
     }
     if (t.includes('forbidden west')) {
         return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500 };
     }
     if (t.includes('cyberpunk')) {
-        return { price_primary: 19000, price_secondary: 10000, price_primary_ps4: 19000, price_secondary_ps4: 10000, is_offer: true, old_price_primary: 25000, discount: "-24%" };
+        return { price_primary: 19000, price_secondary: 10000, price_primary_ps4: 19000, price_secondary_ps4: 10000 };
     }
     if (t.includes('wwe')) {
         return { price_primary: 28000, price_secondary: 17000, price_primary_ps4: 28000, price_secondary_ps4: 17000 };
@@ -544,7 +562,7 @@ function getUpdatedPriceForGame(game) {
         return { price_primary: 7800, price_secondary: 6000, price_primary_ps4: 7800, price_secondary_ps4: 6000 };
     }
     if (t.includes('storm 4')) {
-        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500, is_offer: true, old_price_primary: 22000, discount: "-25%" };
+        return { price_primary: 16500, price_secondary: 9500, price_primary_ps4: 16500, price_secondary_ps4: 9500 };
     }
     if (t.includes('battlefront 2') || t.includes('battlefront ii')) {
         return { price_primary: 7800, price_secondary: 6000, price_primary_ps4: 7800, price_secondary_ps4: 6000 };
@@ -559,7 +577,7 @@ function getUpdatedPriceForGame(game) {
         return { price_primary: 40000, price_secondary: 28000, price_primary_ps4: 40000, price_secondary_ps4: 28000 };
     }
     if ((t.includes('last of us') || t.includes('tlou')) && (t.includes('parte 2') || t.includes('part 2') || t.includes('part ii'))) {
-        return { price_primary: 22000, price_secondary: 16000, price_primary_ps4: 22000, price_secondary_ps4: 16000, is_offer: true, old_price_primary: 29500, discount: "-25%" };
+        return { price_primary: 22000, price_secondary: 16000, price_primary_ps4: 22000, price_secondary_ps4: 16000 };
     }
     if (t.includes('outlast')) {
         return { price_primary: 11000, price_secondary: 7500, price_primary_ps4: 11000, price_secondary_ps4: 7500 };
@@ -633,8 +651,17 @@ async function syncCatalogWithSupabase() {
         // PASADA 1: Procesar primero todas las filas de configuración (__admin_overrides__, __deleted_games__, etc.)
         // Esto garantiza que window.ADMIN_CUSTOM_PRICES esté cargado ANTES de procesar cualquier juego,
         // tanto en versión Computadora como en versión Celular.
+        let processedPsPlus = false;
+        let processedAdminOverrides = false;
+        let processedDeletedGames = false;
+        let processedOffersShowcase = false;
+        let adminOverridesUpdatedAt = 0;
+        let offersShowcaseUpdatedAt = 0;
+
         dbGames.forEach(g => {
             if (g.title === '__ps_plus_plans__' || g.category === 'psplus_config') {
+                if (processedPsPlus) return;
+                processedPsPlus = true;
                 try {
                     const customPlans = JSON.parse(g.description);
                     if (customPlans && typeof PS_PLUS_PLANS !== 'undefined') {
@@ -654,6 +681,9 @@ async function syncCatalogWithSupabase() {
                     }
                 } catch(e) {}
             } else if (g.title === '__admin_overrides__' || g.category === 'prices_config') {
+                if (processedAdminOverrides) return;
+                processedAdminOverrides = true;
+                adminOverridesUpdatedAt = g.updated_at ? new Date(g.updated_at).getTime() : 0;
                 try {
                     const customPrices = JSON.parse(g.description);
                     if (customPrices && typeof customPrices === 'object') {
@@ -662,24 +692,93 @@ async function syncCatalogWithSupabase() {
                     }
                 } catch(e) {}
             } else if (g.title === '__deleted_games__' || g.category === 'deleted_config') {
+                if (processedDeletedGames) return;
+                processedDeletedGames = true;
                 try {
                     const deleted = JSON.parse(g.description);
                     if (Array.isArray(deleted)) {
-                        window.DELETED_GAMES_LIST = deleted;
-                        try { localStorage.setItem('zd_deleted_games', g.description); } catch(e) {}
+                        const mergedDel = Array.from(new Set([...(window.DELETED_GAMES_LIST || []), ...deleted]));
+                        window.DELETED_GAMES_LIST = mergedDel;
+                        try { localStorage.setItem('zd_deleted_games', JSON.stringify(mergedDel)); } catch(e) {}
                     }
                 } catch(e) {}
             } else if (g.title === '__offers_showcase__' || g.category === 'offers_config') {
+                if (processedOffersShowcase) return;
+                processedOffersShowcase = true;
+                offersShowcaseUpdatedAt = g.updated_at ? new Date(g.updated_at).getTime() : 0;
                 try {
                     const customShowcase = JSON.parse(g.description);
-                    if (Array.isArray(customShowcase) && customShowcase.length > 0) {
+                    if (Array.isArray(customShowcase)) {
                         OFERTAS_SHOWCASE_DATA = customShowcase;
-                        if (typeof renderOffersShowcase === 'function') renderOffersShowcase();
-                        if (typeof initOffersShowcase === 'function') initOffersShowcase();
+                        try { localStorage.setItem('zd_offers_showcase', JSON.stringify(customShowcase)); } catch(e) {}
                     }
                 } catch(e) {}
+            } else if (g.category === 'deleted_game' || g.availability === 'eliminado') {
+                if (!Array.isArray(window.DELETED_GAMES_LIST)) window.DELETED_GAMES_LIST = [];
+                if (g.title && !window.DELETED_GAMES_LIST.some(t => normalizeCatalogKey(t) === normalizeCatalogKey(g.title))) {
+                    window.DELETED_GAMES_LIST.push(g.title);
+                }
             }
         });
+
+        if (offersShowcaseUpdatedAt > adminOverridesUpdatedAt && typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA) && window.ADMIN_CUSTOM_PRICES) {
+            OFERTAS_SHOWCASE_DATA.forEach(sc => {
+                if (!sc || !sc.title) return;
+                const tk = sc.title.toLowerCase().trim();
+                const nk = normalizeCatalogKey(sc.title);
+                [tk, nk].forEach(k => {
+                    if (k && window.ADMIN_CUSTOM_PRICES[k] && window.ADMIN_CUSTOM_PRICES[k].deleted !== true && window.ADMIN_CUSTOM_PRICES[k].is_offer === false) {
+                        window.ADMIN_CUSTOM_PRICES[k].is_offer = true;
+                        window.ADMIN_CUSTOM_PRICES[k].old_price_primary = sc.oldPrice || window.ADMIN_CUSTOM_PRICES[k].old_price_primary || null;
+                        window.ADMIN_CUSTOM_PRICES[k].discount = sc.discount || window.ADMIN_CUSTOM_PRICES[k].discount || null;
+                    }
+                });
+            });
+        }
+
+        // Incorporar también cualquier juego marcado como deleted: true en ADMIN_CUSTOM_PRICES
+        if (window.ADMIN_CUSTOM_PRICES && typeof window.ADMIN_CUSTOM_PRICES === 'object') {
+            if (!Array.isArray(window.DELETED_GAMES_LIST)) window.DELETED_GAMES_LIST = [];
+            Object.entries(window.ADMIN_CUSTOM_PRICES).forEach(([k, val]) => {
+                if (val && val.deleted === true && k) {
+                    const low = k.toLowerCase().trim();
+                    if (!window.DELETED_GAMES_LIST.some(t => String(t || '').toLowerCase().trim() === low)) {
+                        window.DELETED_GAMES_LIST.push(k);
+                    }
+                }
+            });
+        }
+
+        const deletedNormSet = new Set([
+            ...(window.DELETED_GAMES_LIST || []).map(t => normalizeCatalogKey(t)),
+            ...(window.RETIRED_CATALOG_TITLES || []).map(t => normalizeCatalogKey(t))
+        ]);
+
+        // Limpiar OFERTAS_SHOWCASE_DATA de juegos eliminados o con is_offer: false explícito
+        if (typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA)) {
+            OFERTAS_SHOWCASE_DATA = OFERTAS_SHOWCASE_DATA.filter(item => {
+                if (!item || !item.title) return false;
+                const nk = normalizeCatalogKey(item.title);
+                if (deletedNormSet.has(nk)) return false;
+                const ov = getUpdatedPriceForGame(item);
+                if (ov && (ov.deleted === true || ov.is_offer === false)) return false;
+                return true;
+            });
+            if (typeof renderOffersShowcase === 'function') renderOffersShowcase();
+            if (typeof initOffersShowcase === 'function') initOffersShowcase();
+        }
+
+        const showcaseNormKeys = new Set(
+            (typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA))
+                ? OFERTAS_SHOWCASE_DATA.map(c => normalizeCatalogKey(c.title || ''))
+                : []
+        );
+        const showcaseIds = new Set(
+            (typeof OFERTAS_SHOWCASE_DATA !== 'undefined' && Array.isArray(OFERTAS_SHOWCASE_DATA))
+                ? OFERTAS_SHOWCASE_DATA.map(c => String(c.id))
+                : []
+        );
+        const legacyStaleOfferIds = new Set([296, 76, 71, 66, 64, 63, 60, 59, 35, 30]);
 
         // PASADA 2: Procesar todos los juegos aplicando los overrides de precios, ediciones y stock
         dbGames.forEach(g => {
@@ -687,7 +786,8 @@ async function syncCatalogWithSupabase() {
                 g.title === '__ps_plus_plans__' || g.category === 'psplus_config' ||
                 g.title === '__admin_overrides__' || g.category === 'prices_config' ||
                 g.title === '__deleted_games__' || g.category === 'deleted_config' ||
-                g.title === '__offers_showcase__' || g.category === 'offers_config'
+                g.title === '__offers_showcase__' || g.category === 'offers_config' ||
+                g.category === 'deleted_game' || g.availability === 'eliminado'
             ) {
                 return;
             }
@@ -699,8 +799,19 @@ async function syncCatalogWithSupabase() {
             const platforms = Array.isArray(g.platforms) ? g.platforms : [];
             const isPs3Only = platforms.length === 1 && platforms[0] === 'PS3';
             const resolvedTitle = resolveGameTitle(g.title, g.id);
-            const coverImg = resolveGameCover(g.image, resolvedTitle || g.title, g.id);
+            const normKeyVal = normalizeCatalogKey(resolvedTitle || g.title);
+            const rawNormKeyVal = normalizeCatalogKey(g.title || '');
             const override = getUpdatedPriceForGame({ ...g, title: resolvedTitle });
+
+            if (
+                deletedNormSet.has(normKeyVal) ||
+                deletedNormSet.has(rawNormKeyVal) ||
+                (override && override.deleted === true)
+            ) {
+                return;
+            }
+
+            const coverImg = resolveGameCover(g.image, resolvedTitle || g.title, g.id);
             const effectiveAvailability = override?.availability || g.availability || 'disponible';
             const isAvailable = effectiveAvailability !== 'sin_stock';
             const effectiveOutOfStockVisibility = override?.out_of_stock_visibility || g.out_of_stock_visibility || 'mostrar';
@@ -731,6 +842,19 @@ async function syncCatalogWithSupabase() {
                     .replace(/PAYDAY 2: CRIMEWAVE EDITION\.\./g, 'PAYDAY 2: Crimewave Edition.')
                     .replace(/\s+SUBTITULADO/g, '');
 
+                let effectiveIsOffer = (override && override.is_offer !== undefined)
+                    ? Boolean(override.is_offer)
+                    : Boolean(g.is_offer);
+                if (
+                    effectiveIsOffer &&
+                    (override === null || override.is_offer === undefined) &&
+                    legacyStaleOfferIds.has(Number(g.id)) &&
+                    !showcaseIds.has(String(g.id)) &&
+                    !showcaseNormKeys.has(normKeyVal)
+                ) {
+                    effectiveIsOffer = false;
+                }
+
                 const gameObj = {
                     id: Number(g.id),
                     title: resolvedTitle,
@@ -741,9 +865,9 @@ async function syncCatalogWithSupabase() {
                     priceSecondary: stdSec,
                     pricePrimaryPS4: isGta6 ? null : (override?.price_primary_ps4 ?? ((g.price_primary_ps4 !== null && g.price_primary_ps4 !== undefined && g.price_primary_ps4 !== '') ? Number(g.price_primary_ps4) : null)),
                     priceSecondaryPS4: isGta6 ? null : (override?.price_secondary_ps4 ?? ((g.price_secondary_ps4 !== null && g.price_secondary_ps4 !== undefined && g.price_secondary_ps4 !== '') ? Number(g.price_secondary_ps4) : null)),
-                    isOffer: (override && override.is_offer !== undefined) ? Boolean(override.is_offer) : Boolean(g.is_offer),
-                    oldPricePrimary: (override && override.old_price_primary !== undefined) ? override.old_price_primary : ((g.old_price_primary !== null && g.old_price_primary !== undefined && g.old_price_primary !== '') ? Number(g.old_price_primary) : null),
-                    discount: (override && override.discount !== undefined) ? override.discount : (g.discount || null),
+                    isOffer: effectiveIsOffer,
+                    oldPricePrimary: effectiveIsOffer ? ((override && override.old_price_primary !== undefined) ? override.old_price_primary : ((g.old_price_primary !== null && g.old_price_primary !== undefined && g.old_price_primary !== '') ? Number(g.old_price_primary) : null)) : null,
+                    discount: effectiveIsOffer ? ((override && override.discount !== undefined) ? override.discount : (g.discount || null)) : null,
                     image: coverImg,
                     description: cleanDesc,
                     genre: g.genre || '',

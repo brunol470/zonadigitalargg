@@ -10134,7 +10134,7 @@ try {
     const savedShowcase = typeof localStorage !== 'undefined' ? localStorage.getItem('zd_offers_showcase') : null;
     if (savedShowcase) {
         const parsed = JSON.parse(savedShowcase);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
             OFERTAS_SHOWCASE_DATA = parsed;
         }
     }

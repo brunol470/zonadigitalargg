@@ -2221,7 +2221,7 @@ function updateCheckoutPriceDisplay() {
  * Copia el Alias de transferencia al portapapeles con feedback visual
  */
 function copyAliasToClipboard() {
-    const aliasText = (STORE_CONFIG && STORE_CONFIG.transferAlias) ? STORE_CONFIG.transferAlias : 'album.bruno.182.mp';
+    const aliasText = (STORE_CONFIG && STORE_CONFIG.transferAlias) ? STORE_CONFIG.transferAlias : 'zona.digital.arg';
     const copyBtn = document.getElementById('copyAliasBtn');
     const copyText = document.getElementById('copyAliasBtnText');
 

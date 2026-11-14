@@ -9996,7 +9996,7 @@ const STORE_CONFIG = {
     currencySymbol: "$",
     deliveryTime: "15 a 30 minutos",
     // Datos oficiales para pago por transferencia
-    transferAlias: "album.bruno.182.mp",
+    transferAlias: "zona.digital.arg",
     transferHolder: "Bruno Maciel Santiago Fensore"
 };
 
